@@ -1,0 +1,855 @@
+---
+title: "Intro to R"
+format:
+    revealjs:
+        theme: [blueyellow]
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        filters:
+          - code-fullscreen
+slide-level: 4
+execute:
+  echo: false
+---
+
+```{r setup, include=FALSE, cache=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+```
+
+# Set up
+
+Go ahead and run this:
+
+```{r, eval=FALSE}
+install.packages("tidyverse")
+
+```
+
+## R and R-studio basics
+
+### Loading Packages
+
+-   Like Python, R is open source and easily extensible.
+
+- `install.packages()` installs a package.
+
+-   You only need to install a package once, but you need to load the package each time you restart R.
+
+-   Unlike Python, you will generally load the whole package with `library(packagename)`
+
+```{r}
+library(tidyverse) # this is really a collection of packages.
+
+```
+
+
+### Loading Packages
+
+In some scenarios, I may want to access a package function without loading the entire package. I can do this using the `::` function. 
+
+For instance, this code would use the `backtick` function from the `glue` package, without loading the glue package into memory.
+
+```{r}
+
+glue::backtick("adding some backticks")
+
+
+```
+
+
+### Assignment with `<-`
+
+In R, you'll frequently see the `<-` used instead of `=` to assign variables.
+
+```{r}
+
+x <- 10
+
+
+
+```
+
+The `=` still works, but is less common.
+
+```{r}
+
+x = 10
+
+```
+
+
+
+
+
+
+
+
+### Try it out: loading data from a URL
+
+
+Run these commands to import a sample from the National Health and Nutrition Examination Survey from a github repo:
+
+
+
+```{r}
+library(tidyverse)
+nhanes<-read_csv("https://raw.githubusercontent.com/Neilblund/SDSB340-Spring-2026/refs/heads/master/Data/nhanes.csv")
+
+
+```
+
+
+
+
+
+
+#### Note on this data
+
+::: {.callout-caution}
+
+For the sake of simplicity, this version of NHANES has been re-sampled to be more-or-less representative of the target population.
+
+In practice, NHANES, like most surveys, uses a complex survey design and requires weighting to get responses that can be generalized to the U.S. public.
+
+All this is to say: if you use this code to analyze actual NHANES data that you download from the CDC, you'll get incorrect results. We'll talk about how to do this properly in a later class.
+
+:::
+
+
+#### Viewing data
+
+::::: columns
+::: {.column width="50%"}
+Once you've imported the data, you should see it appear in the upper-right hand "Environment" pane of R-Studio.
+
+Click on the name in the environment pane to bring up a view of the data.
+:::
+
+::: {.column width="50%"}
+![](images/data_pane.png)
+:::
+:::::
+
+#### Saving a script
+::::: {.columns}
+::: {.column width="50%"}
+-   Go to File -\> New File -\> R script or press CTRL + SHIFT + N to open a new R script.
+
+-   Paste the commands you just used into the window.
+
+-   Add a comment to the script by adding a "\#" followed by some text.
+
+-   Save it by pressing CTRL + S, or using the file menu.
+
+
+:::
+::: {.column width="50%"}
+![](images/script.png)
+:::
+:::::
+
+
+#### Executing commands
+
+-   Restart R, open your script and then press CTRL + ENTER to execute a line of code.
+
+-   Or, execute the entire script by pressing CTRL + SHIFT + ENTER
+
+-   Ideally, you should aim to write scripts that you can execute in order without errors.
+
+
+## Indexing
+
+### Positional Indexing
+
+R uses 1 based indexing instead of 0 based indexing like Python:
+
+```{python}
+# indexing a vector in python
+vec = ["first", "second", "third", "fourth"]
+
+vec[0]
+
+```
+
+```{r}
+# indexing a vector in R
+vec <- c("first", "second", "third", "fourth")
+
+vec[1]
+```
+
+### Logical Indexing
+
+R also allows indexing with a boolean (`TRUE`/`FALSE`) vector.
+
+```{r}
+# make a vector
+vec <- c(1 ,2 ,3 , 4)
+
+# TRUE for all elements > 2
+vec >2
+
+
+
+```
+
+```{r}
+# Returning all elements greater than 2
+
+vec[vec>2]
+
+```
+
+### Logical operators
+
+R's [logical operators](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Logic.html) are very similar to Python's:
+
+```{r}
+vec <- c(1 ,2 ,3 , 4)
+
+vec == 1 | vec ==2
+
+vec > 2 & vec < 4
+
+vec!=3
+
+vec %in% c(2, 4)
+
+
+```
+
+### Name based indexing
+
+For R objects that have a "names" attribute, we can also use name-based indexing:
+
+```{r}
+vec<-c("A" = 1, "B" = 2, "C" = 3)
+
+vec["B"]
+
+```
+
+### Data frame indexing
+
+In most cases, we'll store tabular data in a data frame (or a tibble, which is a close relative):
+
+```{r}
+nhanes
+
+
+
+```
+
+Note that we have a mixture of text and numbers here.
+
+### Data frame indexing
+
+We can access specific cells of this data frame by specifying a row and colum number `data[rowindex, columnindex]`
+
+```{r}
+
+# first row, third column:
+nhanes[1, 3]
+
+```
+
+### Data frame indexing
+
+::::: columns
+::: {.column width="50%"}
+Leaving the row index blank will return an entire column:
+
+```{r}
+nhanes[,1]
+
+```
+:::
+
+::: {.column width="50%"}
+
+::: fragment
+Leaving the column index blank would return the entire row:
+
+```{r}
+nhanes[1,]
+
+```
+:::
+:::
+:::::
+
+### Data frame indexing
+
+More often, we'll access data frame columns using the column name with the `$` notation.
+
+For instance, this would give us the entire marital status column:
+
+```{r}
+
+nhanes$MaritalStatus
+
+
+```
+
+### Data frame indexing
+
+We can combine numeric indexing with the `$` notation to get specific elements from a column like the first 10 marital statuses:
+
+```{r}
+
+
+nhanes$MaritalStatus[1:10]
+
+```
+
+### Data frame indexing
+
+We can also use logical indexing to do things like get all the marital statuses for people over 65:
+
+```{r}
+
+nhanes$MaritalStatus[nhanes$Age>65]
+
+
+
+
+```
+
+### Data frame indexing
+
+Or we could subset the entire data frame to get a new data frame with only married men:
+
+```{r}
+
+nhanes_male_children<-nhanes[nhanes$Age<=18 & nhanes$Gender=="male",]
+nhanes_male_children[1:10, ] # first ten rows
+
+```
+
+### Try it out: indexing
+
+
+- The `is.na()` function returns `TRUE` if an element has an `NA` value (missing data). Make a new data frame with only observations where the `Height` variable is not missing (you can use the `!` symbol to negate a comparison). Call the new data `nhanes_nonmissing`
+
+- Use `$` to get a vector with only heights for adults. 
+
+- Use the `hist` function to plot a histogram of adult heights.
+
+```{r, eval=FALSE}
+#| code-fold: true
+
+nhanes_non_missing<-nhanes[!is.na(nhanes$Height),]
+
+nhanes_non_missing$Height[nhanes_non_missing$Age>=18]
+
+hist(nhanes_non_missing$Height[nhanes_non_missing$Age>=18])
+
+```
+
+## The Tidyverse
+
+
+### The Tidyverse
+
+::::: {.columns}
+::: {.column width="50%"}
+In this class, we'll often use [`tidyverse`](https://tidyverse.org/) packages for a lot of our data manipulation and code.
+
+The tidyverse is a collection of packages with some shared design features and grammar.
+
+:::
+::: {.column width="50%"}
+![](images/tidyverse_image.png)
+:::
+:::::
+
+
+
+
+
+
+### The .data argument
+
+In this class, we'll often use `tidyverse` commands for data manipulation. Many of these commands will allow us to use a `.data` argument and then leave out the `$` notation:
+
+```{r}
+
+select(.data=nhanes,PhysActive)
+
+```
+
+### The .data argument
+
+This is convenient when we want to work with multiple columns without typing out the data set name over and over:
+
+```{r}
+
+select(.data = nhanes, Height, Gender, Age)
+
+```
+
+### Pipes
+
+You'll often see R code with the "pipe" operator, which either looks like this `|>` or `%>%`.
+
+Pipes are just a convenient way to write R code that has lots of steps.
+
+
+### Pipes
+
+Whatever is on the left hand side of the pipe is inserted as the first argument to whatever is on the right hand side:
+
+```{r}
+"hello"|>print()
+
+```
+
+```{r}
+print("hello")
+```
+
+### Pipes
+
+:::::: columns
+::: {.column width="50%"}
+Take this command:
+
+```{r, eval=FALSE}
+
+select(.data=nhanes, Height)
+
+```
+:::
+
+:::: {.column width="50%"}
+::: fragment
+We can re-write it using a pipe:
+
+```{r}
+
+nhanes|>
+  select(Height)
+
+
+```
+:::
+::::
+::::::
+
+
+
+### Pipes
+
+Pipes are especially useful when we have to perform several modifications on a piece of data:
+
+```{r}
+nhanes|>
+  filter(Age>=18)|>  # filter performs logical sub-setting
+  pluck("Height")|> # pluck takes a single column and returns a vector
+  hist()            # hist makes a histogram
+
+
+```
+
+
+
+
+## Data manipulation with dplyr
+
+```{r}
+
+
+
+```
+
+### Filter and select
+
+You've already seen these, but they're actually `dplyr` functions. `filter` performs logical subsetting. While `select` allows you to select specific columns from a data frame:
+
+
+```{r}
+# People who sleep less than five hours a night but say they haven't 
+# reported sleep issues to a doctor
+nhanes|>
+  filter(SleepHrsNight < 5)|>
+  filter(SleepTrouble == "No")|>
+  select(Age, Gender,SleepTrouble)
+
+```
+
+### Filter and select
+
+
+```{r}
+# Biggest babies:
+
+nhanes|>
+  filter(AgeMonths <= 6)|>
+  select(AgeMonths, Gender, HeadCirc, Weight)|>
+  arrange(-Weight) # sort the data by a variable (descending order)
+
+```
+
+
+### Mutate
+
+Mutate will allow us to add an additional column to an existing data set.
+
+```{r}
+nhanes<-nhanes|>
+  # n() is shortcut for counting rows in dplyr functions:
+  mutate(total_responses = n()) 
+
+nhanes$total_responses[1:10]
+```
+
+. . .
+
+Note that we could also do this like:
+
+```{r, eval=FALSE}
+
+nhanes$total_responses<-nrow(nhanes) # nrow counts rows in a data frame
+
+nhanes$total_responses[1:10]
+```
+
+... but `mutate` will do some other things that this approach doesn't.
+
+
+### Mutate to make a factor variable
+
+Factor variables are a method for handling categorical data in R. Since we're working with surveys, this will come up quite a bit.
+
+By default, many R functions will alphabetize categorical data, but sometimes that doesn't make sense:
+
+```{r}
+table(nhanes$HealthGen)
+
+
+```
+
+### Mutate to make a factor variable
+
+R factors associate labels with numeric values, so they let us override the default ordering of categories:
+
+```{r}
+# fct_relevel re-orders factors
+
+fct_relevel(nhanes$HealthGen, "Poor", "Fair", "Good", "Vgood", "Excellent")|>
+  table()
+
+
+```
+
+### Try it out: Mutating to create a factor variable
+
+- `Depressed` asks respondents how often they've felt symptoms of depression in the last few weeks. Responses are: None, Most, and Several.
+
+- Use `mutate` with `fct_relevel` to make a new variable called `Depressed_factor` that correctly arranges the `Depressed` values. 
+
+```{r}
+#| code-fold: true
+
+nhanes<-nhanes|>
+  mutate(Depressed_factor = fct_relevel(Depressed, "None", "Several", "Most"))
+
+table(nhanes$Depressed_factor)
+
+
+```
+
+
+### Grouping
+
+Most of our survey analyses will require us to do some kind of aggregation, like calculate the percentage of people who said they "agree" with a statement at different age levels.
+
+The `group_by` function in dplyr gives us an easy way to perform these kinds of aggregations.
+
+### Grouping
+
+On its own, `group_by` doesn't appear to change anything in our data:
+
+```{r}
+nhanes|>
+  group_by(Gender)
+
+```
+
+### Grouping and summarizing
+
+Where `group_by` becomes useful is when we pair it with commands like `summarize` to calculate one or more summary statistics across levels of a group:
+
+```{r}
+
+nhanes|>
+  group_by(Gender)|>
+  # na.rm=TRUE will drop NA values before calculating (otherwise this returns NA)
+  summarize(mean_pulse = mean(Pulse, na.rm=T)
+            ) 
+
+```
+
+### Grouping and summarizing
+
+We could use `group_by` to create a version of the frequency table of depression symptoms we made in the last section:
+
+```{r}
+#| output-location: column
+
+nhanes|>
+  group_by(Depressed_factor)|>
+  summarise(n = n())
+
+```
+
+### Grouping and summarizing
+
+But what we probably want here is a proportion, we can get this by adding a mutate step:
+
+```{r}
+#| output-location: column
+
+nhanes|>
+  group_by(Depressed)|>
+  summarise(n = n())|>
+  mutate(proportion = n /sum(n))
+
+```
+### Grouping and mutating
+
+Many other `dplyr` functions will respect the grouping context. For instance, `group_by` followed by `mutate` will let us add an aggregate statistic to the original data set:
+
+```{r}
+#| output-location: column
+# Gender, Height, and average height by Gender for each respondent:
+nhanes|>
+  group_by(Gender)|>
+  mutate(mean_height = mean(Height, na.rm=T))|>
+  select(Gender, Height, mean_height)
+
+
+
+```
+
+### Grouping and slicing
+
+Here's an example of getting the babies with the biggest head circumference by using `filter` with `group_by`
+
+```{r}
+#| output-location: column
+nhanes|>
+  filter(AgeMonths <= 6)|>
+  arrange(AgeMonths)|>
+  group_by(AgeMonths)|>
+  filter(HeadCirc == max(HeadCirc))|>
+  select(Gender, AgeMonths, HeadCirc, Weight)
+  
+
+```
+
+### Grouping and ungrouping
+
+Be careful: `group_by` will persist even after you use functions like `filter` or `mutate`, so be sure to `ungroup` the data frame when you no longer need to aggregate over a group!
+
+::::: {.columns}
+::: {.column width="50%"}
+```{r}
+
+
+nhanes|>
+  filter(AgeMonths <= 6)|>
+  arrange(AgeMonths)|>
+  group_by(AgeMonths)|>
+  summarize(mean_HeadCirc = mean(HeadCirc, na.rm=T))
+
+```
+
+:::
+::: {.column width="50%"}
+```{r}
+nhanes|>
+  filter(AgeMonths <= 6)|>
+  arrange(AgeMonths)|>
+  group_by(AgeMonths)|>
+  ungroup() |> # UNgrouping
+  summarize(mean_HeadCirc = mean(HeadCirc, na.rm=T))
+
+```
+
+:::
+:::::
+
+### Try it out: grouping and summarizing
+
+- Calculate the median `PhysActiveDays` (Physically active days per week) for men compared to women.
+
+- Calculate the proportion of respondents who said they had smoked at least 100 cigarettes in their lifetime (`Smoke100`)
+
+- Re-calculate the answer from the previous step, but use `filter` first to remove people who have an `NA` value before you calculate the proportions.
+
+```{r, eval=FALSE}
+#| code-fold: true
+nhanes|>
+  group_by(Gender)|>
+  summarise(mean_active = median(PhysActiveDays, na.rm=T))
+
+nhanes|>
+  group_by(Smoke100)|>
+  summarise(n = n())|>
+  mutate(proportion = n/sum(n))
+
+nhanes|>
+  filter(!is.na(Smoke100))|>
+  group_by(Smoke100)|>
+  summarise(n = n())|>
+  mutate(proportion = n/sum(n))
+
+
+```
+
+## Making a formatted table
+
+It's rarely a good idea to show un-formatted R output in a finished product like a report or presentation (unless your goal is teaching people R)
+
+. . .
+
+Fortunately there are a whole bunch of add-on packages that can format output for us.
+
+We'll primarily use `gt` and `gtsummary`, mostly because they work well with other packages in this class.
+
+```{r}
+library(gt)
+library(gtsummary)
+
+```
+
+### Making a formatted table with gt
+
+`gt()` is all we need to get formatted output:
+
+
+```{r}
+#| output-location: column
+
+nhanes|>
+  group_by(Depressed_factor)|>
+  summarise(n = n())|>
+  mutate(proportion = n /sum(n))|>
+  gt()
+
+```
+
+### Making a formatted table with gt
+
+But we'll usually want to do some additional formatting.
+
+
+```{r}
+#| output-location: column
+
+nhanes|>
+  group_by(Depressed_factor)|>
+  summarise(n = n())|>
+  mutate(proportion = n /sum(n))|>
+  gt()|>
+  fmt_integer(n)|>
+  fmt_percent(proportion)
+
+```
+
+### Making a formatted table with gt
+
+But we'll usually want to do some additional formatting.
+
+```{r}
+#| output-location: column
+nhanes|>
+  group_by(Depressed_factor)|>
+  summarise(n = n())|>
+  mutate(proportion = n /sum(n))|>
+  gt()|>
+  fmt_integer(n)|>
+  fmt_percent(proportion, decimals=1)|>
+  cols_label(
+    proportion = "Percent",
+    n = "N", 
+    Depressed_factor =  "Days felt depressed"
+             )
+
+```
+
+### Making a formatted table with gt
+
+But we'll usually want to do some additional formatting.
+
+```{r}
+#| output-location: column
+
+nhanes|>
+  group_by(Depressed_factor)|>
+  summarise(n = n())|>
+  mutate(proportion = n /sum(n))|>
+  gt()|>
+  fmt_integer(n)|>
+  fmt_percent(proportion, decimals=1)|>
+  cols_label(
+    proportion = "Percent", 
+    n = "N", 
+    Depressed_factor = "Days felt depressed"
+             )|>
+  sub_missing(missing_text = "Missing")
+
+```
+
+
+
+### Making a formatted table with gtsummary
+
+The `gtsummary` library is a wrapper around `gt` that will do some aggregating and automatic formatting for us. It's somewhat inflexible, which I why you still need to learn some dplyr, but it works great here with a lot less code:
+
+```{r}
+#| output-location: column
+
+nhanes|>
+  select(Depressed_factor)|>
+  tbl_summary() 
+
+
+
+```
+
+
+### Making a formatted table with gtsummary
+
+The `gtsummary` library is a wrapper around `gt` that will do some aggregating and automatic formatting for us. It's somewhat inflexible, which I why you still need to learn some dplyr, but it works great here with a lot less code:
+
+```{r}
+#| output-location: column
+
+nhanes|>
+  select(Depressed_factor)|>
+  tbl_summary(
+    label  = list(
+      Depressed_factor ~ "Days felt depressed"
+      )
+    ) 
+
+
+
+```
+
+
+

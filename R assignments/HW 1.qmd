@@ -2,6 +2,9 @@
 title: "R homework 1"
 format: 
   html: 
+   toc: true
+   theme: 
+     - united
    self-contained: true
    filters: 
      - honeypot
@@ -25,7 +28,7 @@ codebook<-read_csv("https://raw.githubusercontent.com/Neilblund/SDSB340-Spring-2
 
 ```
 
-You can view the codebook to get additional detail on the variables in this data set.
+You can view the `codebook` to get additional detail on the variables in this data set.
 
 ## Question 1
 

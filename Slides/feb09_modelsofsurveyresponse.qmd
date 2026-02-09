@@ -95,6 +95,33 @@ Concepts like life satisfaction can be even more tricky:
 
 ![](images/Figure 1. Latent Variable.png){fig-align="center"}
 
+# Latent variable
+
+```{dot}
+digraph LatentModel {
+    rankdir=LR
+    // Latent Variable (oval by default)
+    L1 [label="Life satisfaction", shape=oval];
+
+    // Observed Variables (rectangles)
+    node [shape=box];
+    X1[label="Frequent feelings of happiness"];
+    X2[label="Reporting \"I'm satisfied with my life\""]; 
+    X3[label="Smiling; whistling"];
+
+    // Relationships
+    L1 -> X1;
+    L1 -> X2;
+    L1 -> X3;
+
+    // Optional: Group observed variables
+    {rank=same; X1 X2 X3}
+}
+
+```
+
+
+
 # Constructs and validity
 
 Validity refers to how well our measurement actually captures the construct we care about.

@@ -1,0 +1,366 @@
+---
+title: "Validity and measurement error"
+format:
+    revealjs:
+        theme: [blueyellow]
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+        filters:
+          - code-fullscreen
+bibliography: references.bib
+slide-level: 4
+execute:
+  echo: false
+---
+
+## Surveys
+
+-   **Surveys** are systematic efforts to gather quantitative information about a larger population.
+
+-   Most surveys measure population characteristics by *sampling* from a population.
+
+-   In this class, we're typically looking at surveys that measure characteristics of people, usually by asking them questions.
+
+## Surveys and errors
+
+-   **Errors** in this context refer to differences between what we *intend* to measure and what we actually measure.
+
+-   Errors can be random or systematic, and they can come from both the measurement process and the process of representing a population.
+
+## Total Survey Error
+
+![](images/lifecycle.png){fig-align="center"}
+
+From [@groves2009survey]
+
+## Total Survey Error
+
+::::: columns
+::: {.column width="50%"}
+-   Measurement errors: inaccurately capturing the characteristic we care about.
+
+-   Representation errors: the things we're surveying are dissimilar from the target population.
+:::
+
+::: {.column width="50%"}
+![](images/lifecycle.png){fig-align="center"}
+:::
+:::::
+
+# Constructs
+
+-   A construct is the thing we're trying to measure. For instance: I might measure unemployment, blood pressure, life-satisfaction or intelligence.
+
+-   Some of these are relatively simple (unemployment or blood pressure)
+
+-   Some of these are complex and multifaceted (life-satisfaction and intelligence)
+
+# Constructs
+
+Even simple constructs like employment can be difficult to define systematically:
+
+-   Are retirees "unemployed"?
+
+-   Does part time employment count as being employed? Volunteer work?
+
+-   Are seasonal workers unemployed for half the year?
+
+# Constructs
+
+Concepts like life satisfaction can be even more tricky:
+
+-   Does it just mean subjective satisfaction?
+
+-   Does it require that a person regularly experiences positive emotions throughout the day? - Does it require a *lack* of desire for improvement?
+
+-   Is it a stable outlook or can it change quickly like a mood?
+
+# Latent constructs
+
+-   Even where we can agree on a conceptual definition, complex constructs are difficult to measure because they involve things we can't observe directly.
+-   At best, we might be able to observe the symptoms of life satisfaction, such as your self-assessments.
+
+# Latent constructs
+
+![](images/Figure 1. Latent Variable.png){fig-align="center"}
+
+# Constructs and validity
+
+Validity refers to how well our measurement actually captures the construct we care about.
+
+More formally, we could think about the relationship between person $i$'s actual latent trait ($u_i$), and their measured trait ($Y_i$) as a function of $u_i$ plus some error $e_i$:
+
+$$
+Y_i = u_i + e_i
+$$
+
+# Constructs and validity
+
+In other words, if I'm measuring life satisfaction only using subjective self-assessment ("how satisfied are you with your life?"), then I could think of the responses as being some error plus their actual satisfaction:
+
+$$
+Y_i = u_i + e_i
+$$
+
+If "experiencing positive emotions throughout the day" is also a core component of life satisfaction, then there will be some slippage between $Y_i$ and $u_i$.
+
+# Constructs and validity
+
+Of course, for a latent construct, we can't measure $u_i$ directly, but we can still take steps to minimize $e_i$ and hopefully provide suggestive evidence that its small.
+
+$$
+Y_i = u_i + e_i
+$$
+
+## Measurement error
+
+Measurement error is a closely related concept. Our ideal measurement of $Y_i$ is:
+
+$$
+Y_i = u_i + e_i
+$$
+
+. . .
+
+But our actual measurement for a single case $y_i$ is again a function of actual values plus some measurement error:
+
+$$
+y_i = Y_i + z_i
+$$
+
+## Measurement error
+
+In the "life satisfaction" case: maybe respondents don't understand the question, or they're distracted, or they are hesitant to admit their real feelings to someone else, or small differences in wording or question order impact their expressed views.
+
+$$
+y_i = Y_i + z_i
+$$
+
+## Measurement error vs. Validity
+
+-   This distinction is hazy in practice, but conceptually: validity problems would be a source of error even if our measurement process worked exactly as intended.
+
+-   If I ask "who do you intend to vote for in the upcoming election?", even respondents who understand the question and answer truthfully might just change their minds before the election.
+
+## Processing errors
+
+Processing errors occur in the translation from data to analysis: data-entry mistakes, miscalculations, programming errors etc.
+
+$$
+y_i - y_{ip}
+$$
+
+## Processing errors
+
+Open ended questions (like "what is the most important problem facing the country") are usually manually grouped into a smaller set of categories. But this grouping inevitably adds noise to the measurement.
+
+
+
+![](images/mip_gallup.png){fig-align="center"}
+
+## Bias vs. Variability
+
+-   Many of the statistics we'll talk about in this class will assume some notion of "what happens in repeated trials?"
+
+-   Conceptually, each measure $y_i$ is thought of as a single realization of an infinite number of potential measurements $y_{it}$
+
+-   Bias and variability refer to two different ways that our expected value ($E_t$) of $y_{it}$ over many trials would differ from $Y_i$:
+
+. . .
+
+$$
+\mathbb{E}_t(y_{it}) - Y_i
+$$
+
+## Bias vs. Variability
+
+If error is random, then:
+
+$$
+\mathbb{E}_t(y_{it}) = Y_i
+$$
+
+If error systematic, then:
+
+$$
+\mathbb{E}_t(y_{it}) \neq Y_i
+$$
+
+## Bias vs. Variability in measurement error
+
+::::: columns
+::: {.column width="50%"}
+Random
+
+-   Distractions
+-   Fleeting positive or negative moods
+-   Interviewer mistakes
+:::
+
+::: {.column width="50%"}
+Systematic
+
+-   Social desirability bias
+-   Observer effects
+-   Language barriers
+:::
+:::::
+
+## Survey responses and Zaller
+
+-   What are we actually hoping to measure when we measure "public opinion"?
+
+-   Is public opinion a coherent thing? Do surveys miss important dimensions of it?
+
+## Survey responses and Zaller
+
+::::: columns
+::: {.column width="50%"}
+-   Does response instability reflect a problem with **validity** of our public opinion measure or is it the result of **measurement error**?
+:::
+
+::: {.column width="50%"}
+![](images/zaller_instability.png)
+:::
+:::::
+
+## Two views of public opinion
+
+Two views are worth reviewing for context:
+
+-   A more pessimistic view: "non-attitudes"
+
+-   A more optimistic view: measurement error.
+
+## Some perspectives: non-attitudes
+
+::::: columns
+::: {.column width="50%"}
+-   Non-attitudes mostly associated with Phillip Converse, who, along with Angus Campbell and Warren Miller, conducted some of the earliest systematic survey research on American voters.
+
+-   Sought to understand how people choose candidates and the role of belief systems/ideology in the choice.
+:::
+
+::: {.column width="50%"}
+![](images/CONVERSE-obit-superJumbo.webp)
+:::
+:::::
+
+## Some perspectives: non-attitudes
+
+::::: columns
+::: {.column width="50%"}
+-   Very few respondents expressed systematic reasons for their party preferences [@converse2006nature]
+:::
+
+::: {.column width="50%"}
+![](images/converse_conceptualization.png)
+:::
+:::::
+
+::: notes
+Belief systems:
+
+> "... configuration of ideas and attitudes in which the elements are bound together by some form of constraint or functional interdependence."
+
+. . .
+
+Constraint:
+
+> ...the success we would have in predicting, given initial knowledge that an individual holds a specified attitude, that he holds certain further ideas and attitudes.
+
+Converse argues that some notion of "belief systems" are what we *hope* undergirds people's expressed preferences and voting behaviors, but survey research finds that many voters don't really have a belief system at all in this sense.
+
+Levels of conceptualization in voter's explanations of their preference:
+
+-   Ideologues: clear belief system motivation.
+
+-   Near-ideologues: belief system, but only mentioned in passing.
+
+-   Group-interest: group-based interests (big business, labor, minorities)
+
+-   Nature of the times: good economy/bad economy, war/no war.
+
+-   No issue content: things like personal characteristics of candidates.
+:::
+
+## Some perspectives: non-attitudes
+
+::::: columns
+::: {.column width="50%"}
+-   For the general public, the correlation between issue positions was very low
+:::
+
+::: {.column width="50%"}
+![](images/converse_constraint.png)
+:::
+:::::
+
+## Some perspectives: non-attitudes
+
+::::: columns
+::: {.column width="50%"}
+-   Other than party ID, most people's views were not stable over time, even on important issues.
+:::
+
+::: {.column width="50%"}
+![](images/converse_response_instability.png)
+:::
+:::::
+
+## Some perspectives: non-attitudes
+
+For Converse, many survey responses represent non-attitudes:
+
+> "Large portions of an electorate simply do not have meaningful beliefs"
+
+## Non-attitudes
+
+-   Note that this is a question of construct validity: surveys don't really measure what they purport to measure for many respondents.
+
+## Some perspectives: Measurement error
+
+-   An alternative explanation for response instability is measurement error: if questions are vague, then response instability can be explained by people randomly misinterpreting the question even if they have a stable attitude.
+
+-   Chris Achen notes that there was response instability even on non-political questions like "how often do you attend church?" [@achen1975mass]
+
+## Some perspectives: Measurement error
+
+-   If random measurement error is a problem, then averaging multiple measurements should improve it: random errors will cancel out when we get more measurements ($\mathbb{E}_t(y_{it}) = Y_i$)
+
+## Some perspectives: Measurement error
+
+::::: columns
+::: {.column width="50%"}
+-   Consistent with expectations, the responses are much more stable when measured using more than one question. [@ansolabehere2008strength]
+
+-   There is still instability! But there might be less of it than what Converse initially uncovered.
+:::
+
+::: {.column width="50%"}
+![](images/measurement_error.png)
+:::
+:::::
+
+## Zaller
+
+-   Where does Zaller land between these two perspectives? Is his view more optimistic or less optimistic than the "non-attitudes" explanation?
+
+-   Does his imply measurement error is the problem or is it more a question of construct validity?
+
+-   If Zaller is right, what should be done to improve the quality of survey responses?
+
+-   Under Zaller's model, why do more sophisticated respondents give more stable responses?
+
+# References

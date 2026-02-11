@@ -22,6 +22,7 @@ bibliography: references.bib
 slide-level: 4
 execute:
   echo: false
+lightbox: true
 ---
 
 # Question writing
@@ -30,7 +31,7 @@ execute:
 
 How could we improve this question?
 
-Question: Do you support or oppose restoring the Joint Comprehensive Plan of Action (JCPOA) with Iran? (Answers range from strongly support to strongly oppose)
+> Question: *Do you support or oppose restoring the Joint Comprehensive Plan of Action (JCPOA) with Iran?* (Answers range from strongly support to strongly oppose)
 
 ## Problematic Questions: lack of context
 
@@ -43,112 +44,139 @@ Question: Do you support or oppose restoring the Joint Comprehensive Plan of Act
 
 :::: {.column width="50%"}
 ::: fragment
-[![Yougov Iran nuclear deal question](images/irandeal.png)](https://today.yougov.com/politics/articles/12877-most-americans-now-support-iran-deal)
+![](images/irandeal.png){fig-align="center"}
+
+[Yougov Iran nuclear deal question](https://today.yougov.com/politics/articles/12877-most-americans-now-support-iran-deal)
 :::
 ::::
 ::::::
 
 # Problematic Questions
 
-Are we spending too much money on welfare and national defense, or not enough? (Answers range from "too little" to "too much")
+*Are we spending too much money on welfare and national defense, or not enough?* (Answers range from "too little" to "too much")
 
-# Problematic Questions: double-barreled items
+## Problematic Questions: double-barreled
 
-::::: columns
+:::::: columns
 ::: {.column width="50%"}
--   This is an example of a double-barreled question. I might want to spend more on welfare and less on national defense, or vice versa.
+-   I might want to spend more on welfare and less on national defense, or vice versa.
 -   At a minimum, we probably want to split these up. (The General Social Survey asks a whole series of spending questions like this)
 :::
 
-::: {.column width="50%"}
-[![GSS Spending Questions](images/gss_spending.png){fig-align="center"}](https://gss.norc.org/get-documentation/questionnaires.html)
+:::: {.column width="50%"}
+::: fragment
+![](images/gss_spending.png){fig-align="center"}
+
+[GSS Spending Questions](https://gss.norc.org/get-documentation/questionnaires.html)
 :::
-:::::
+::::
+::::::
 
 # Problematic Questions
 
-Have you ever joined a political protest? (options are "I have done this", "I might do this", or "I would never do this")
+*Have you ever joined a political protest?* (options are "I have done this", "I might do this", or "I would never do this")
 
 ## Problematic Questions: non-exclusive categories
 
-::::: columns
+:::::: columns
 ::: {.column width="50%"}
 -   These response options aren't clearly mutually exclusive: I may have participated in the past but be unwilling to do so in the future. Or vice-versa.
 -   Splitting this up or adding a full range of options could be better.
 :::
 
-::: {.column width="50%"}
-[![Question from the 1992 ISSP](images/protest_action.png){fig-align="center"}](https://www.gesis.org/en/issp)
+:::: {.column width="50%"}
+::: fragment
+![](images/protest_action.png){fig-align="center"}
+
+[Question from the 1992 ISSP](https://www.gesis.org/en/issp)
 :::
-:::::
+::::
+::::::
 
 # Problematic Questions
 
-How often do you drink alcohol? (options range from "Never" to "Frequently")
+*How often do you drink alcohol?* (options range from "Never" to "Frequently")
 
 ## Problematic Questions: ambiguous time frames
 
-::::: columns
+:::::: columns
 ::: {.column width="50%"}
 -   Respondents can interpret the relevant time frame differently. Lifetime? In the last week?
 -   Specifying some time frame can give you more consistent answers.
 :::
 
-::: {.column width="50%"}
-[![Question from NHANES](images/nhanes_alcohol.png){fig-align="center"}](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/ALQ_L.htm#ALQ111)
+:::: {.column width="50%"}
+::: fragment
+![](images/nhanes_alcohol.png){fig-align="center"}
+
+[Question from NHANES](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/ALQ_L.htm#ALQ111)
 :::
-:::::
+::::
+::::::
 
 # Problematic Questions
 
-In the last six months, have you been a victim of a crime? (options are "yes" or "no")
+*In the last six months, have you been a victim of a crime?* (options are "yes" or "no")
 
 ## Problematic Questions: context and recall
 
-::::: columns
+:::::: columns
 ::: {.column width="50%"}
 -   Respondents may not see themselves as victims, may forget minor crimes, or may not immediately think of even major crimes as "criminal".
 -   Surveys like the NCVS use examples and ask about specific aspects of each crime.
 :::
 
-::: {.column width="50%"}
-[![NCVS alternative theft questions](images/ncvs_theft.png){fig-align="center"}](https://bjs.ojp.gov/document/NCVS_Redesign_Questionnaire.pdf)
+:::: {.column width="50%"}
+::: fragment
+![](images/ncvs_theft.png){fig-align="center"}
+
+[NCVS alternative theft questions](https://bjs.ojp.gov/document/NCVS_Redesign_Questionnaire.pdf)
 :::
-:::::
+::::
+::::::
 
 # Problematic Questions
 
-Do you abuse illegal drugs? (responses are "yes" or "no")
+*Do you abuse illegal drugs?* (responses are "yes" or "no")
 
 ## Problematic Questions: loaded language
 
-::::: columns
+:::::: columns
 ::: {.column width="50%"}
 -   Explicitly referencing loaded terms can make people less willing to give honest answers, especially on sensitive questions.
 -   Respondents may genuinely not consider themselves drug abusers.
 :::
 
-::: {.column width="50%"}
-[![Marijuana questions on the Youth Risk Behavior Survey](images/drug_abuse.png)](https://www.cdc.gov/yrbs/questionnaires/index.html)
+:::: {.column width="50%"}
+::: fragment
+![](images/drug_abuse.png)
 
+[Marijuana questions on the Youth Risk Behavior Survey](https://www.cdc.gov/yrbs/questionnaires/index.html)
 :::
-:::::
+::::
+::::::
 
 # Problematic Questions
 
-Do you blame Democrats for the government shutdown? (Answers are "Yes", "No", "Not sure")
+*Do you blame Democrats for the government shutdown?* (Answers are "Yes", "No", "Not sure")
 
 ## Problematic Questions: leading
 
-::::: columns
+:::::: columns
 ::: {.column width="50%"}
--   Mentioning one party here is likely to nudge respondents toward blaming Democrats, and the response options would fail to capture the possibility of assigning equal blame to both parties.
+-   Mentioning one party here is likely to nudge respondents toward blaming Democrats
+-   The response options would fail to capture the possibility of assigning equal blame to both parties.
 :::
 
-::: {.column width="50%"}
-[![Yougov's shutdown question](images/blame_shutdown.png){fig-align="center"}](https://today.yougov.com/topics/politics/survey-results/daily/2025/11/10/2927c/2)
+:::: {.column width="50%"}
+::: fragment
+![](images/blame_shutdown.png){fig-align="center"}
+
+[Yougov's shutdown question](https://today.yougov.com/topics/politics/survey-results/daily/2025/11/10/2927c/2)
+
 :::
-:::::
+::::
+::::::
 
 # Question writing
 
@@ -163,20 +191,26 @@ There are no hard and fast rules here, sometimes a flawed question is still the 
 -   Ask questions that only measure one "thing" at a time.
 -   Keep things short.
 
-
 # Question writing
 
-- Where possible, you should try to use an established measure instead of reinventing the wheel.
+Where possible, you should try to use an established measure instead of reinventing the wheel.
 
+::: {style="font-size: 50%;"}
+-   [General Social Survey](https://gss.norc.org/)
+-   [EuroBarometer](https://europa.eu/eurobarometer/)
+-   [American National Election study](https://electionstudies.org/)
+-   [National Health and Nutrition Examination Study](https://wwwn.cdc.gov/nchs/nhanes/)
+-   [World Values Survey](https://www.worldvaluessurvey.org/)
+-   [National Crime Victimization Study](https://bjs.ojp.gov/data-collection/ncvs)
+-   [U.S. Census/American Community Survey](https://www.census.gov/programs-surveys/acs.html)
+-   [Consumer Expenditure Survey](https://www.bls.gov/cex/csxsurveyforms.htm)
+:::
 
 # How respondents think about questions
 
-## Response styles
-
-### Social Desirability
+## Social Desirability
 
 Everyone wants to be liked. Respondents will give answers that make them look good. Maybe even subconsciously.
-
 
 ### Social Desirability: voting
 
@@ -196,18 +230,17 @@ Everyone wants to be liked. Respondents will give answers that make them look go
 
 :::::: columns
 :::: {.column width="50%"}
-::: {.nonincremental}
+::: nonincremental
 -   Perhaps unsurprisingly, the desire to avoid being caught in a lie overwhelmed social desirability.
 :::
 ::::
 
 ::: {.column width="50%"}
 ![](images/bogus_pipeline_results.png)
+
 [@hanmer2014experiments]
 :::
 ::::::
-
-
 
 ### Social Desirability: list-experiments
 
@@ -215,30 +248,47 @@ List-experiments are another option for dealing with sensitive topics by indirec
 
 ### Social Desirability: list-experiments
 
-
-::::: {.columns}
+::::: columns
 ::: {.column width="50%"}
-- Respondents are randomly assigned to receive only non-sensitive items, or non-sensitive items plus one sensitive question.
+-   Respondents are randomly assigned to receive only non-sensitive items, or non-sensitive items plus one sensitive question.
 
-- They only say how many items they agree with.
+-   They only say how many items they agree with.
 
-- The difference in the average count of items is used to estimate support.
 :::
+
 ::: {.column width="50%"}
 ![](images/list_experiment.png)
+
+[@kuklinski1997racial]
 :::
 :::::
 
+### Social Desirability: list-experiments
+
+::::: columns
+::: {.column width="50%"}
+
+::: {.nonincremental}
+
+-   The difference in the average count of items is used to estimate support.
+:::
+
+:::
+
+::: {.column width="50%"}
+![](images/list_experiment_results.png)
+
+[@kuklinski1997racial]
+:::
+:::::
 
 ### Social Desirability: some fixes
 
-- Taking the interviewer out seems to help a lot! This is less of a problem on online surveys.
-- Deliberately loading questions is another option (see the example marijuana question from the YRBSS)
-- For highly sensitive topics, list experiments can mitigate the problem.
+-   Taking the interviewer out seems to help a lot! This is less of a problem on online surveys.
+-   Deliberately loading questions is another option (see the example marijuana question from the YRBSS)
+-   For highly sensitive topics, list experiments can mitigate the problem.
 
-
-
-### Fence siting
+## Fence siting
 
 ::::: columns
 ::: {.column width="50%"}
@@ -248,11 +298,11 @@ List-experiments are another option for dealing with sensitive topics by indirec
 :::
 
 ::: {.column width="50%"}
-![](images/Likert-Scale-7-point-scales.webp){fig-align="center" width="70%"}
+![](images/Likert-Scale-7-point-scales.webp){fig-align="center" width="60%"}
 :::
 :::::
 
-### Acquiescence/naysaying
+## Acquiescence/naysaying
 
 -   Some respondents may be prone to agree or disagree with everything. This could be because of their personality or a lack of attention.
 
@@ -262,7 +312,7 @@ List-experiments are another option for dealing with sensitive topics by indirec
 ::: {.column width="50%"}
 -   The F-scale was developed out of an early effort to understand the psychology of rank and file fascists.
 -   30 agree/disagree items, with agreement indicating more authoritarian views.
--   The lack of balance raised serious questions about bias: acquiescence bias would probably inflate the estimates of authoritarian attitudes.
+-   Acquiescence bias would probably inflate the estimates of authoritarian attitudes.
 :::
 
 ::: {.column width="50%"}
@@ -274,13 +324,13 @@ List-experiments are another option for dealing with sensitive topics by indirec
 
 -   Balanced agree/disagree items: agreement could = more of a characteristic in some questions, and less of it in others. ("you can't trust strangers" and "most people are honest")
 
--   Forced choice: instead of agree/disagree, two potentially desirable options could be posed against each other ("is it better to be obedient or creative?")
+-   Forced choice: instead of agree/disagree, use either/or ("is it better to be obedient or creative?") or some other item-specific options ("always - never", "many - none", etc.)
 
-### Careless responding
+## Careless responding
 
-- Respondents may get worn out, bored, or not really care to give accurate answers.
+-   Respondents may get worn out, bored, or not really care to give accurate answers.
 
-- (this can be especially problematic for surveys that offer rewards for respondents.)
+-   (this can be especially problematic for surveys that offer rewards for respondents.)
 
 ### Careless responding
 
@@ -291,16 +341,17 @@ List-experiments are another option for dealing with sensitive topics by indirec
 :::
 
 ::: {.column width="50%"}
-![https://www.pewresearch.org/short-reads/2024/03/05/online-opt-in-polls-can-produce-misleading-results-especially-for-young-people-and-hispanic-adults/](images/submarine_question.png)
+![](images/submarine_question.png)
+
+[Pew](https://www.pewresearch.org/short-reads/2024/03/05/online-opt-in-polls-can-produce-misleading-results-especially-for-young-people-and-hispanic-adults/)
+
 :::
 :::::
 
 ### Careless responding: some fixes
 
-- Limiting the number of questions can help mitigate boredom.
-- Including some attention screens (questions with clear answers that disqualify inattentive respondents) or scales with some reverse-coded items.
-
-
+-   Limiting the number of questions can help mitigate boredom.
+-   Including some attention screens (questions with clear answers that disqualify inattentive respondents) or scales with some reverse-coded items.
 
 # Multi-item measures
 
@@ -312,7 +363,7 @@ List-experiments are another option for dealing with sensitive topics by indirec
 
 ::::: columns
 ::: {.column width="50%"}
--   Basic problem: professions of "old-fashioned" racism declined precipitously after the Civil Rights movement.
+-   Reported "old-fashioned" racism declined precipitously after the Civil Rights movement.
 
 -   But most Americans continued to oppose programs designed to improve racial equality.
 
@@ -324,7 +375,7 @@ List-experiments are another option for dealing with sensitive topics by indirec
 :::
 :::::
 
-## Symbolic Racism
+### Symbolic Racism
 
 Described as a blend of "anti-black affect" and "traditional conservatism" with four components:
 
@@ -332,12 +383,13 @@ Described as a blend of "anti-black affect" and "traditional conservatism" with 
 -   "blacks’ continuing disadvantages are largely due to their unwillingness to work hard enough."
 -   "As a result, both their continuing demands and increased advantages are unwarranted"
 
+. . .
+
 Scale: [Symbolic Racism 2000 scale](https://condor.depaul.edu/~phenry1/SR2Kinstructions.htm)
 
 [@henry2002symbolic]
 
-
-## Symbolic Racism: Critiques
+### Symbolic Racism: Critiques
 
 Some major critiques:
 
@@ -347,6 +399,4 @@ Some major critiques:
 
 -   The construct isn't really distinct from old-fashioned racism.
 
-
 ## References
-

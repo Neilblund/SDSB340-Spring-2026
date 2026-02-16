@@ -1,0 +1,979 @@
+---
+title: "Working with survey data"
+format:
+    revealjs:
+        theme: [clean, serif]
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        filters:
+          - code-fullscreen
+slide-level: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+```
+
+## Setup
+
+```{r, eval=FALSE}
+
+install.packages(c("here","gt", "gtsummary"))
+
+```
+
+### Creating a project directory
+
+-   Go to file `->` New Project and follow the interface to create a new project in a directory
+
+-   Call the project something like `SDSB` (or just call it `ANES recoding` if you think you might want to have separate projects for different assignments.)
+
+-   Create a new folder called `Data` inside the project directory.
+
+### Downloading data
+
+::::: columns
+::: {.column width="50%"}
+-   Go to the ANES website and download the [cumulative time series (1948 to 2024)](https://electionstudies.org/data-center/anes-time-series-cumulative-data-file/) in `.csv` format
+
+- Also download the same file in `.stata` format.
+
+- Put the zip file in your `Data` directory. Don't unzip it!
+:::
+
+::: {.column width="50%"}
+![](images/anes_ctime.png)
+:::
+:::::
+
+### Importing the data into R
+
+If you have the right setup, the commands below should import the data into R and load the libraries you need for this analysis.
+
+```{r}
+library(tidyverse)
+library(gtsummary)
+library(gt)
+
+
+fname<-here::here('data', 'anes_timeseries_cdf_csv_20260205.zip')
+anes<-readr::read_csv(unz(fname, 'anes_timeseries_cdf_csv_20260205.csv'))
+
+```
+
+(`here` is a helper function that finds the root directory of the current project, which makes it easy to locate files regardless of your current working directory. )
+
+### Checking it out
+
+Click the data set name in the environment window to see what you've got. Also look in the zipped folder and look at the codebook file (labelled `anes_timeseries_cdf_codebook_var_20260205.pdf`)
+
+### Checking it out
+
+-   This data set includes all questions that were asked in three or more rounds of the ANES, so, depending on your interests, this is a survey that can track public opinion dating all the way back to 1948.
+
+-   But to get it in a usable format, we'll need to do some re-coding.
+
+
+### Filtering some rows
+
+Since we're dealing with a large data set here, it might help to get rid of some rows that we won't need (the questions we're dealing with only become available in 1986)
+
+```{r}
+
+anes<-anes|>
+  filter(VCF0004>=1986)
+
+
+```
+
+
+## Recoding variables
+
+The simplest way to store survey data is with numeric codes and codebook to indicate the mapping of responses to numbers.
+
+::::: columns
+::: {.column width="50%"}
+![](images/anes_codebook_trust.png)
+:::
+
+::: {.column width="50%"}
+```{r}
+anes|>
+  count(VCF0675)
+
+```
+:::
+:::::
+
+
+
+### Recoding numeric variables
+
+Even variables that are essentially numeric may require some recoding because non-responses will often be assigned their own numeric codes:
+
+::::: columns
+::: {.column width="30%"}
+![ANES feeling thermometer scores](images/feeling_therm.png){fig-align="center"}
+:::
+
+::: {.column width="70%"}
+```{r}
+
+summary(anes$VCF0253)
+
+
+```
+:::
+:::::
+
+### Recoding numeric variables
+
+Obviously this would give us misleading results if we treated the 98/99 codes as a numeric value, so we'll need to replace those with actual `NA` values instead.
+
+::::: columns
+::: {.column width="30%"}
+![ANES feeling thermometer scores](images/feeling_therm.png){fig-align="center"}
+:::
+
+::: {.column width="70%"}
+```{r}
+
+anes|>
+  mutate(fem_therm = replace(VCF0253, VCF0253>97, NA))|>
+  summarize(
+    mean_fem_therm = mean(fem_therm, na.rm=T)
+    
+    )
+
+
+
+```
+:::
+:::::
+
+### Recoding variables
+
+::::: columns
+::: {.column width="50%"}
+This setup makes sense for storage and transfer, but it means we need to do some extra work to get this kind of data in a useable format for analysis. Usually, this will involve creating and manipulating factor variables.
+:::
+
+::: {.column width="50%"}
+```{r}
+anes|>
+  count(VCF0675 )
+
+```
+:::
+:::::
+
+### Factors
+
+Factor variables are essentially just integers with an extra attribute that maps numbers onto text values.
+
+```{r}
+fvar <- factor(
+  x = c(1, 1, 2, 2, 3, 3, 3),
+  levels = c(1, 2 ,3),
+  labels = c('A', 'B', 'C'))
+
+fvar
+
+```
+
+. . .
+
+These are still basically numeric data under the hood:
+
+```{r}
+
+
+as.numeric(fvar)
+
+```
+
+### Creating factors
+
+The easiest way to create a factor is using the `factor` command. 
+
+The `levels` argument specifies the unique *potential* values that x could take.
+
+The `label` argument specifies the labels that should be applied to each value.
+
+```{r}
+#| output-location: column-fragment
+
+
+levs<-c(1, 2, 3, 4, 5, 8, 9)
+labs<-c("1. Just about always",
+        "2. Most of the time", 
+        "3. Only some of the time", 
+        "4. Almost never",
+        "5. None of the time",
+        "8. Don't Know",
+        "9. NA"
+        )
+
+trust_media<-factor(anes$VCF0675, labels=labs, levels=levs)
+table(trust_media)
+
+```
+
+### Creating factors
+
+The order matters here! Levels and labels should be specified in the same order.
+
+```{r}
+#| output-location: column-fragment
+
+
+levs<-c(1, 2, 3, 4, 5, 8, 9)
+labs<-c("1. Just about always",
+        "2. Most of the time", 
+        "3. Only some of the time", 
+        "4. Almost never",
+        "5. None of the time",
+        "8. Don't Know",
+        "9. NA"
+        )
+
+trust_media<-factor(anes$VCF0675, labels=labs, levels=levs)
+table(trust_media)
+
+```
+
+### Creating factors (dplyr)
+
+We can also do this kind of recoding using `dplyr` functions (which will usually be a little cleaner when we work with lots of variables)
+
+```{r}
+#| output-location: column
+
+levs<-c(1, 2, 3, 4, 5, 8, 9)
+labs<-c("1. Just about always",
+        "2. Most of the time", 
+        "3. Only some of the time", 
+        "4. Almost never",
+        "5. None of the time",
+        "8. Don't Know",
+        "9. NA"
+        )
+
+anes<-anes |>
+  mutate(trust_media = factor(x =VCF0675, 
+                              levels = levs,
+                              labels = labs)
+         )
+anes|>
+  count(trust_media)
+
+```
+
+
+
+
+### Combining factor levels
+
+To combine levels, you can just list the same label twice:
+
+```{r}
+#| output-location: column-fragment
+
+levs<-c(1, 2, 3, 4, 5, 8, 9)
+
+
+labs<-c("Just about always",
+        "Most of the time", 
+        "Only some of the time", 
+        "Almost never",
+        "None of the time",
+        "DK/NA",
+        "DK/NA"
+        )
+
+anes<-anes |>
+  mutate(trust_media = factor(x =VCF0675, 
+                              levels = levs,
+                            labels = labs)
+         )
+anes|>
+  count(trust_media)
+
+
+```
+
+### Removing levels
+
+Leaving values out of the label/level specification will convert them to `NA` values. 
+
+```{r}
+#| output-location: column-fragment
+
+levs<-c(1, 2, 3, 4, 5)
+labs<-c("Just about always",
+        "Most of the time", 
+        "Only some of the time", 
+        "Almost never",
+        "None of the time"
+        )
+
+anes <- anes|>
+  mutate(trust_media = factor(x =VCF0675, 
+                              levels = levs,
+                              labels = labs)
+         )
+
+anes|>
+  count(trust_media)
+
+
+```
+
+
+### Try it out
+
+
+Consult the code book and use `mutate` and `factor` to create a factor variable for `VCF0886`. Call the new variable result `fedspending_poor` that only includes the "increased", "same" or "decreased" responses.
+
+```{r}
+#| code-fold: true
+
+spendlabs<-c("1. Increased", 
+             "2. Same", 
+             "3. Decreased"
+               )
+spendlevs<-c(1, 2, 3)
+
+anes<-anes|>
+  mutate(fedspending_poor = factor(VCF0886, 
+                                   levels=spendlevs, 
+                                   labels=spendlabs))
+anes|>
+  count(fedspending_poor)
+         
+         
+
+```
+
+
+### Reordering factors
+
+We can also reverse the ordering of our factor variable. 
+
+```{r}
+#| output-location: column-fragment
+
+
+reverse_labs <- c(
+  "None of the time",
+  "Almost never",
+  "Only some of the time",
+  "Most of the time",
+  "Just about always"
+)
+reverse_levels<-c(5, 4, 3, 2, 1)
+
+anes<-anes |>
+  mutate(trust_media = factor(x =VCF0675, 
+                            levels=reverse_levels,
+                            labels = reverse_labs)
+         )
+anes|>
+  count(trust_media)
+
+
+```
+
+
+### Factors as numeric
+
+We might occasionally want to convert ordinal factors back to numeric data for analysis. For instance, I might want to view the average level of trust in all available years:
+
+```{r}
+#| output-location: column
+reverse_labs <- c(
+  "None of the time",
+  "Almost never",
+  "Only some of the time",
+  "Most of the time",
+  "Just about always"
+)
+reverse_levels<-c(5, 4, 3, 2, 1)
+
+anes <-anes|>
+  mutate(trust_media = factor(x =VCF0675, 
+                            levels=reverse_levels,
+                            labels = reverse_labs)
+         )
+
+anes|>
+  group_by(VCF0004)|> # group by year
+  summarize(mean_trust = mean(as.numeric(trust_media),  na.rm=T),
+            )|>
+  drop_na()
+
+```
+
+### Factors as numeric
+
+The numeric values underlying a factor are always integers greater than zero and sequential, **even if the original numeric values were not**
+
+```{r}
+newfac <- factor(c(-4, -4, 0, 1), 
+                 labels = c("negative four", "zero", "one"))
+newfac
+
+as.numeric(newfac)
+
+
+```
+
+### Factors as numeric
+
+For more complicated transformations, functions like `dplyr`'s `case_when` and `recode_values` allow you to assign numeric values based on logical comparisons
+
+```{r}
+newfac <- factor(c(-4, -4, 0, 1), 
+                 labels = c("negative four", "zero", "one"))
+
+
+recode_values(newfac, 
+              "negative four" ~ -4,
+              "zero" ~ 0,
+              "one" ~ 1
+              )
+
+```
+
+
+
+
+### Checking recodes
+
+Mis-coding a factor is one of the easiest ways to mess up an analysis, so you should always:
+
+1.  Give the recoded variable a new name
+2.  Check the old values against the recoded ones to make sure the results align.
+
+
+
+### Checking recodes
+
+Here's a simple way to check a newly created factor against the original:
+
+::::: columns
+::: {.column width="50%"}
+-   use `select` to retrieve the original variable and the recoded factor.
+-   use `arrange` to sort the table by the new recoded factor.
+-   use `distinct` to view only the unique values of each variable.
+:::
+
+::: {.column width="50%"}
+```{r}
+
+anes<-anes |>
+  mutate(trust_media = factor(x =VCF0675, 
+                            levels=reverse_levels,
+                            labels = reverse_labs)
+         )
+
+anes|>
+  select(trust_media, VCF0675)|>
+  arrange(trust_media)|>
+  distinct()
+
+
+```
+:::
+:::::
+
+
+### Try it out
+
+1. Consult the codebook for info on: `VCF9039`,`VCF9040`,`VCF9041`, and `VCF9042`
+
+2. Create a new set of factor variables that includes only the five agree/disagree responses for these variables (everything else should be `NA`)
+
+3. Reverse the ordering on `VCF9040`,`VCF9041` so that the first level is "strong disagreement" rather than "strong agreement" (you can use `rev()` to flip a vector)
+
+4. Convert your new variables to numeric values and add them together.
+
+### Try it out
+
+Making the factors:
+
+```{r}
+#| code-fold: true
+
+labs<-c(
+  "Agree strongly" ,
+  "Agree somewhat",
+  "Neither agree nor disagree",
+  "Disagree somewhat",
+  "Disagree strongly"
+)
+levs<-c(1, 2, 3, 4, 5)
+anes<-anes|>
+  mutate(sr39 = factor(VCF9039, levels=levs, labels=labs),
+         sr40 = factor(VCF9040, levels=rev(levs), labels=rev(labs)),
+         sr41 = factor(VCF9041, levels=rev(levs), labels=rev(labs)),
+         sr42 = factor(VCF9042, levels=levs, labels=labs)
+         )
+
+# confirming the recoding is correct for on variable
+#anes|>
+# select(sr40,VCF9040 )|>
+#  arrange(sr40)|>
+#  distinct()
+
+```
+
+
+Making the index variable
+
+```{r}
+#| code-fold: true
+
+anes<-anes|>
+  mutate(sr_index = as.numeric(sr39) + 
+           as.numeric(sr40) +
+           as.numeric(sr41) +
+           as.numeric(sr42))
+
+
+```
+
+
+### forcats
+
+-   The [forcats](https://forcats.tidyverse.org/) package provides some additional tools for working with factor variables. Check out the [cheatsheet](https://raw.githubusercontent.com/rstudio/cheatsheets/main/factors.pdf)
+
+
+
+## Making a formatted table
+
+It's rarely a good idea to show un-formatted R output in a finished product like a report or presentation (unless your goal is teaching people R)
+
+. . .
+
+Fortunately there are a whole bunch of add-on packages that can format output for us.
+
+We'll primarily use `gt` and `gtsummary`, mostly because they work well with other packages in this class.
+
+
+### Making a formatted table with gt
+
+`gt()` is all we need to get formatted output from some data:
+
+```{r}
+#| output-location: column
+
+anes|>
+  count(trust_media)|>
+  gt()
+  
+  
+
+```
+
+### Making a formatted table with gt
+
+But we'll usually want to do some additional formatting.
+
+```{r}
+#| output-location: column
+
+anes |>
+  count(trust_media) |>
+  drop_na() |>
+  mutate(proportion = n / sum(n)) |>
+  gt() |>
+  fmt_integer(n) |>
+  fmt_percent(proportion, decimals = 1) |>
+  cols_label(
+    trust_media = "How often R trusts media to report fairly",
+    proportion = "Percent", n = "N")
+  
+
+```
+
+### Making a formatted table with gtsummary
+
+The `gtsummary` library is a wrapper around `gt` that will do some aggregating and automatic formatting for us. It's somewhat inflexible, which I why you still need to learn some dplyr, but it works great here with a lot less code:
+
+```{r}
+#| output-location: column
+
+anes|>
+  select(trust_media)|>
+  drop_na()|>
+  tbl_summary()
+
+
+
+
+```
+
+### Making a formatted table with gtsummary
+
+The `gtsummary` library is a wrapper around `gt` that will do some aggregating and automatic formatting for us. It's somewhat inflexible, which I why you still need to learn some dplyr, but it works great here with a lot less code:
+
+```{r}
+#| output-location: column
+
+anes|>
+  select(trust_media)|>
+  drop_na()|>
+  tbl_summary(label=list(
+    trust_media = "How often R trusts media to report fairly")
+    )
+
+```
+
+
+### Making a formatted table with gtsummary
+
+
+```{r}
+#| output-location: column
+
+anes |>
+  filter(VCF0004 == 2024)|>
+  mutate(
+    fem_therm = replace(VCF0253, VCF0253 > 97, NA),
+    fund_therm =replace(VCF0234 , VCF0234 >97, NA),
+    lg_therm =replace(VCF0232, VCF0232>97, NA),
+    gender = factor(
+      VCF0104,
+      levels = c(1, 2),
+      labels = c("Male", "Female")
+    )
+  ) |>
+  select(fem_therm, fund_therm, lg_therm, gender)|>
+  drop_na()|>
+  tbl_summary(include = c(fem_therm,
+                          fund_therm,
+                          lg_therm
+                          ), 
+              by = gender,
+              label = list(fem_therm ="FT: feminists",
+                           fund_therm = "FT: fundamentalists",
+                           lg_therm = "FT: gays and lesbians"
+                           ),
+              statistic = all_continuous() ~ "{mean} ({sd})"
+              )
+
+
+```
+
+### Try it out
+
+- Use either `gt` or `gtsummary` to create a table that shows the relationship between `fedspending_poor` and the symbolic racism index.
+
+```{r, eval=FALSE}
+#| code-fold: true
+
+# gtsummary method
+anes|>
+  tbl_summary(include=sr_index, 
+              by=fedspending_poor, 
+              label = list(sr_index = "Racial resentment index"
+                           ),
+              )
+
+# mean instead of median
+anes|>
+  tbl_summary(include=sr_index, 
+              by=fedspending_poor, 
+              label = list(sr_index = "Racial resentment index"
+                           ),
+              statistic = all_continuous() ~ "{mean} ({sd})"
+              )
+
+
+# gt method
+
+anes|>
+  group_by(fedspending_poor)|>
+  summarise(sr_index  = mean(sr_index, na.rm=T),
+            n = n()
+            )|>
+  drop_na()|>
+  gt()|>
+  fmt_integer(n)|>
+  fmt_number(sr_index, decimals =1)|>
+  cols_label(fedspending_poor = "Spending on the poor should be...",
+             sr_index = "Avg. symbolic racism index"
+             )
+
+
+```
+
+
+
+## Weights
+
+-   We've mentioned before that most surveys use unequal probability samples that can over/under represent certain groups.
+
+-   To get representative data, we'll typically use some kind of weighting to make our results resemble the population.
+
+### Weights
+
+-   We'll talk more about *how* these are calculated and what they mean, but just applying them is relatively simple here: if someone is over-represented then you count their responses less. If they're under represented, you count them more.
+
+### Weights
+
+Surveys like the ANES may include different weights for different scenarios, so its important to read the documentation carefully to identify what you should use for your analysis.
+
+For our purposes, `VCF0009z` should give us what we need.
+
+```{r}
+
+hist(anes$VCF0009z)
+
+
+```
+
+### Weights from scratch
+
+Anywhere you would normally count the number of observations, sum the weight variable:
+
+```{r}
+anes|>
+  select(trust_media,VCF0009z)|>
+  drop_na()|>
+  group_by(trust_media)|>
+  summarize(n = n(),
+            weighted_n = sum(VCF0009z)
+            )
+```
+
+### Weights from scratch
+
+Anywhere you would normally count the number of observations, sum the weight variable:
+
+```{r}
+anes|>
+  select(trust_media,VCF0009z)|>
+  drop_na()|>
+  group_by(trust_media)|>
+  summarize(n = n(),
+            weighted_n = sum(VCF0009z)
+            )|>
+  mutate(proportion = n/sum(n),
+         weighted_proportion = weighted_n/sum(weighted_n)
+         )
+  
+```
+
+### Weighted calculations
+
+Some functions will automatically calculate weighted statistics if you just supply the weight variable:
+
+```{r}
+anes|>
+  select(trust_media,VCF0009z)|>
+  drop_na()|>
+  count(trust_media, wt=VCF0009z)|>
+  mutate(proportion = n/sum(n))
+
+  
+
+```
+
+### Weighted calculations
+
+Some functions will automatically calculate weighted statistics if you just supply the weight variable:
+
+```{r}
+anes|>
+  mutate(fem_therm = replace(VCF0253, VCF0253>97, NA))|>
+  summarize(
+    weighted_fem_therm = weighted.mean(fem_therm, w=VCF0009z, na.rm=T),
+    fem_therm = mean(fem_therm,  na.rm=T)
+
+    )
+
+```
+
+### srvyr
+
+`srvyr` is a specialized R package for handling survey data. Using `as_survey_design` will create a new data set with a weighting attribute that is automatically applied when we use other functions from the package.
+
+```{r}
+library(srvyr)
+
+anes_svy <- 
+  anes|>
+  as_survey_design(ids = 1, weight =  VCF0009z)
+```
+
+### srvyr
+
+For instance, we can get weighted proportions:
+
+```{r}
+anes_svy|>
+  select(trust_media)|>
+  drop_na()|>
+  group_by(trust_media)|>
+  summarize(proportions = survey_prop())
+
+
+```
+
+### srvyr
+
+Or weighted averages:
+
+```{r}
+anes_svy|>
+  mutate(fem_therm = replace(VCF0253, VCF0253>97, NA))|>
+  summarize(avg = survey_mean(fem_therm, na.rm=T))
+
+```
+
+
+### srvyr
+
+`gtsummary` provides some additional functions for working with the `srvyr` package, so we can automatically create nicely formatted tables with survey results:
+
+```{r}
+
+anes_svy|>
+  select(trust_media)|>
+  tbl_svysummary(include = trust_media,
+                 label=list(trust_media='Trust media')
+                 )
+
+
+```
+
+### Try it out
+
+Get the weighted average of the symbolic racism index by federal spending preferences.
+
+
+(You'll probably need to `drop_na()` values to avoid an error message here)
+
+```{r, eval=FALSE}
+anes_svy|>
+  select(sr_index, fedspending_poor)|>
+  drop_na()
+
+```
+
+
+```{r}
+#| code-fold: true
+
+anes_svy|>
+  select(sr_index, fedspending_poor)|>
+  drop_na()|>
+  tbl_svysummary(include = sr_index,
+                 by =fedspending_poor
+                 )
+
+```
+
+
+## Alternative data formats
+
+-   Data formats like `.sav`, `.dta` are intended for use with stats software like Stata and SPSS. These can handle a lot of additional features not included in a `.csv` file.
+
+-   Importantly, they have varying levels of support for factor labels. Importing data in these formats *can* save us from some of the recoding steps.
+
+-   However, you'll occasionally see some weird behaviors when working with these formats in R, so be careful.
+
+### Stata format
+
+I can use the `haven` package to read the `Stata` formatted file. Now, just using `as_factor` on a variable will automatically give me a factor variable:
+
+```{r}
+
+file<-here::here("Data", "anes_timeseries_cdf_stata_20260205.zip")
+anes_dta<-haven::read_dta(file)
+
+anes_dta|>
+  mutate(trust_media =as_factor(VCF0675))|>
+  count(trust_media)
+
+
+```
+
+### Stata format
+
+Stata formatted data can also contain separate labels for each variable, so we can see the text of each question here:
+
+```{r}
+
+attr(anes_dta$VCF0675, "label")
+
+
+```
+
+### Stata format
+
+Some R commands can automatically make use of variable labels, which can be convenient or annoying depending on the situation.
+
+```{r}
+#| output-location: column
+
+
+anes_dta|>
+  mutate(trust_media  =as_factor(VCF0675))|>
+  select(trust_media)|>
+  tbl_summary()
+
+
+```
+
+### Making a formatted table with gtsummary
+
+
+
+```{r}
+anes_dta|>
+  mutate(trust_media  =as_factor(VCF0675))|>
+  select(trust_media)|>
+  drop_na()|>
+  tbl_likert()
+
+```
+
+### Making a formatted table with gtsummary
+
+
+
+```{r}
+library(labelled)
+varlabs<-lapply(anes_dta, function(x) attr(x, 'label'))
+datasubset <- anes_dta |>
+  filter(VCF0004 ==2024) |>
+  filter(VCF0303>0)|>
+  select(VCF0205:VCF0207, VCF0209:VCF0212, VCF0009z, VCF0303) |>
+  mutate(across(VCF0205:VCF0212, .fn =  ~ as.numeric(replace(.x, .x >
+                                                               97, NA))),
+         VCF0303 = as_factor(VCF0303))|>
+  droplevels()
+var_label(datasubset)<-varlabs[colnames(datasubset)]
+
+datasubset|>
+  as_survey_design(ids = 1, weight =  VCF0009z)|>
+  select(-VCF0009z)|>
+  drop_na()|>
+  tbl_svysummary(by = VCF0303)
+
+```
+

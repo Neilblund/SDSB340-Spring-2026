@@ -1,0 +1,108 @@
+---
+title: "R homework 2"
+format: 
+  html: 
+   toc: true
+   theme: 
+     - united
+   self-contained: true
+   filters: 
+     - honeypot
+editor: visual
+---
+
+## Setup and background
+
+For this assignment, you'll be working with a series of questions from the [[2024]{.underline} round of the ANES](https://electionstudies.org/data-center/2024-time-series-study/) that attempt to measure "authoritarian" personalities. Authoritarianism is a personality type associated with a strong need for order, support for established authorities, and intolerance toward ambiguity and non-conformity. The ANES uses a measure of authoritarianism that asks respondents to say which of a pair of qualities they view are more important for a child to have:
+
+| Variable Name | Variable Description |
+|------------------------------------|------------------------------------|
+| V242260 | (More important for a child to have:) 1. Independence or 2. **Respect for elders** |
+| V242261 | (More important for a child to have:) 1. Curiosity or 2. **Good manners** |
+| V242262 | (More important for a child to have:) 1. **Obedience** or 2. self reliance |
+| V242263 | (More important for a child to have:) 1. Being considerate or 2. **Well behaved** |
+
+Qualities associated with authoritarianism are indicated in **bold**, and responses are typically added together to create a summary measure that counts the total number of more "authoritarian" preferences for each respondent.
+
+### Data
+
+To access the ANES 2024 data, head over to [electionstudies.org](https://electionstudies.org/) and click on the "Data Center", then click on the link for the [**2024 Time Series Study**](https://electionstudies.org/data-center/2024-time-series-study/)
+
+Under the "Download Data" heading, click on the button that says "CSV" to download the `.csv` formatted file. You'll want to place this a folder called "data" inside your current working directory. You do not need to unzip the file. We can do this from inside of R.
+
+If you've set this up correctly, the code below should import a data set with 4,496 observations
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(gtsummary)
+library(gt)
+fname<-here::here("data", "anes_timeseries_2024_csv_20250808.zip")
+anes  <- read_csv(unz(fname,"anes_timeseries_2024_csv_20250808.csv"))|>
+  # removing people who didn't complete the post interview survey
+  filter(V240002c == 2)
+
+
+
+```
+
+Consult the [User Guide and Codebook](https://electionstudies.org/anes_timeseries_2024_userguidecodebook_20250808/) for additional details on the questions in this survey.
+
+## Question 1
+
+`V242411` asks respondents whether they agree or disagree with the statement that "Having a strong leader in government is good for the United States even if the leader bends the rules to get things done."
+
+Recode this variable to a factor variable with appropriate labels, leaving out refusals and other non-responses (values from -9 to -1). **Present a formatted table showing the percent and number of respondents who chose each of the remaining options.**
+
+```{r}
+
+
+
+```
+
+## Question 2
+
+Use these four items to create an additive index of authoritarianism. Where the value of the index for each respondent indicates the total number of "authoritarian" qualities they chose.
+
+In other words, you'll code:
+
+-   **For V242260, code** Respect for elders = 1, Independence = 0, all other responses = NA
+
+-   **For V242261, code** Good manners = 1, Curiosity = 0, all other responses = NA
+
+-   **For V242262, code** Obedience = 1, Self-reliance = 0, all other responses = NA
+
+-   **For V242263, code** Well behaved = 1, Considerate = 0, all other responses = NA
+
+Your index should be the sum of these four variables, so your resulting index should range from 0 to 4. Check to make sure you've recoded correctly (the result should have a mean of 1.9 after removing all missing responses).
+
+```{r}
+
+
+
+```
+
+## Question 3
+
+Create a table that summarizes the relationship between preference for strong leaders (`V242411`) and your authoritarianism index. **Present your findings in a formatted table and briefly discuss your results.** Are the results consistent with what you would expect?
+
+```{r}
+
+
+
+
+
+
+
+```
+
+## Question 4
+
+We might be concerned that the observed relationship between authoritarianism and support for strong leaders is confounded by some other characteristic, such as gender. If men are more likely to have authoritarian personalities, and they're more likely to prefer a strong leader, then the relationship you saw in question 3 might be explained entirely by differences between men and women.
+
+One way to test the plausibility of this argument is to calculate the effect of authoritarianism separately for men and women. Use `V241550` to re-create the table from question 3 separately for men and women. Briefly discuss your results.
+
+```{r}
+
+
+
+```

@@ -1,0 +1,393 @@
+---
+title: "Finding scales"
+format:
+    revealjs:
+        theme: [clean, serif]
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        filters:
+          - code-fullscreen
+slide-level: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+```
+
+
+
+
+# Finding a scale
+
+
+- In addition to an instrument you develop yourself, your final projects require you to include two other constructs that come from established literature.
+
+- Finding a validated instrument relevant to your topic may required a little detective work. 
+- At a minimum, you want to find a citation for your scale, the question(s) used, and the scoring method.
+
+# Finding a scale
+
+Your best bet is probably going to be searching journal articles in the relevant field. Some good general search engines for academic research are:
+
+-   [Google Scholar](https://scholar-google-com.proxy-um.researchport.umd.edu/).
+
+-   [Web of Science](https://www-webofscience-com.proxy-um.researchport.umd.edu/wos/woscc/smart-search)
+
+-   [Semantic Scholar](https://www.semanticscholar.org/)
+
+
+# Accessing library resources
+
+- The UMD library provides access to a ton of scholarly sources. You can access these freely any time you're on campus.
+
+- If you're not on campus, you can use the [UMD reload button](https://lib.guides.umd.edu/reload-button/home) to redirect your request through the library proxy.
+
+
+## Using a search engine
+
+::::: {.columns}
+::: {.column width="50%"}
+- Searching ["social media addiction" on Web of science turns up](https://www-webofscience-com.proxy-um.researchport.umd.edu/wos/woscc/summary/24907006-7e6c-4d64-afde-bd8d22838542-019f5842e6/2a2c5067-512e-4a69-a60b-3ae21e755b39-019f5842e2/relevance/1 ) lots of documents.
+
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_addiction.png)
+
+:::
+:::::
+
+## Using a search engine
+
+::::: {.columns}
+::: {.column width="50%"}
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article1.png)
+:::
+:::::
+
+
+
+
+
+## Using a search engine
+
+::::: {.columns}
+::: {.column width="50%"}
+- This section lists the journal where the article was published. You should look for peer-reviewed sources.
+- Journal impact factor is an (imperfect) method of measuring the prestige of an academic journal using a weighted measure of citations.
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article3.png)
+:::
+:::::
+
+## Using a search engine
+
+::::: {.columns}
+::: {.column width="50%"}
+- The abstract section will briefly summarize the article and the most important findings. 
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article4.png)
+:::
+:::::
+
+## Using a search engine
+
+::::: {.columns}
+::: {.column width="50%"}
+- There are some additional keywords here that might be helpful guides. 
+- For this project, you should keep an eye out for terms like "questionnaire development", "validation" etc.
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article5.png)
+:::
+:::::
+
+## Using a search engine
+
+::::: {.columns}
+::: {.column width="50%"}
+- Web of science also links papers together using their citation networks, so this is a useful thread to pull if you want to find more literature on the same topic. 
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article6.png)
+:::
+:::::
+
+
+## Using a search engine
+
+::::: {.columns}
+::: {.column width="50%"}
+- Since I'm using the UMD proxy, a Find\@UMD link shows up that will take me to a page where I can find the full text of the article.
+- In this case, the full text is freely available from the publisher.
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article2.png)
+:::
+:::::
+
+
+
+## Examining the paper
+
+::::: {.columns}
+::: {.column width="50%"}
+- Academic articles tend to have a relatively consistent structure. You don't need to read the whole thing to get useful information.
+
+- For our purposes here, the "methods" and "literature review" sections are probably the most important components.
+:::
+::: {.column width="50%"}
+![](images/Research-Paper-Structure.png.webp)
+[source](https://peachyessay.com/blogs/writing-research-paper/)
+:::
+:::::
+
+## Examining the paper
+
+::::: {.columns}
+::: {.column width="50%"}
+- In the "methods" for this paper, there's a heading called "measures" where the authors describe how they went about measure the key variables for their model.
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article7.png)
+
+
+:::
+:::::
+
+## Examining the paper
+
+::::: {.columns}
+::: {.column width="50%"}
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article8.png)
+:::
+:::::
+
+## Examining the paper
+
+::::: {.columns}
+::: {.column width="50%"}
+- The critical component is the citation for the Bergen Social Media Addiction Scale. 
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article9.png)
+:::
+:::::
+
+
+## Examining the paper
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- The critical component is the citation for the Bergen Social Media Addiction Scale. 
+
+-  This is the original citation for the scale they're using, so you would want to track down this article for yourself.
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article10.png)
+:::
+:::::
+
+## Examining the paper
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- If the questions are available, you'll often find them listed in the appendix at the end, or in the supplementary materials, or with a link to a webpage.
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article11.png)
+:::
+:::::
+
+
+## Examining the paper
+
+::::: {.columns}
+::: {.column width="50%"}
+- If the questions are available, you'll often find them listed in the appendix at the end, or in the supplementary materials, or with a link to a webpage.
+
+- In this article, the questions used are listed in the appendix.
+
+:::
+::: {.column width="50%"}
+![](images/bfas.png)
+:::
+:::::
+
+
+## Questions to ask
+
+
+::::: {.columns}
+::: {.column width="50%"}
+- Is the scale widely used? The citation count for the original publication can be a good indicator.
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article12.png)
+:::
+:::::
+
+## Questions to ask: versions
+
+
+- Are there different versions of the scale that might be more relevant for your project? (shorter versions, updates, minor modifications for similar constructs)
+
+
+## Questions to ask: validation studies
+
+::::: {.columns}
+::: {.column width="50%"}
+- Have there been additional validation studies?
+
+- Widely used scales might have been subjected to multiple validation studies to examine how well they work and what they measure
+
+:::
+::: {.column width="50%"}
+::: fragment
+
+![](images/webofscience_sm_article13.png)
+
+:::
+
+:::
+:::::
+
+## Questions to ask: validation studies
+
+::::: {.columns}
+::: {.column width="50%"}
+
+
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article14.png)
+
+:::
+:::::
+
+## Questions to ask: validation studies
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- A meta-analysis is a study that systematically reviews and aggregates the results of previous studies.
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article15.png)
+
+:::
+:::::
+
+
+
+## Questions to ask: validation studies
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- Dimensionality refers to the estimated number of latent constructs measured by the instrument (this is typically measured with some form of factor analysis)
+- Unidimensionality indicates that there's evidence that a single trait explains most of the variation in responses to the scale items.
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article16.png)
+
+:::
+:::::
+
+## Questions to ask: validation studies
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- Evidence of construct validity comes from examining how well this measure correlates with other things that should be associated with social media addiction.
+
+- (The abstract says these are "pooled" because they're based on a weighted average of multiple studies.)
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article17.png)
+
+:::
+:::::
+
+
+## Questions to ask: validation studies
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- Test-retest reliability is an indication of how closely responses correlate between follow-ups. 
+
+- (There weren't enough papers to quantitatively evaluate this)
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article18.png)
+
+:::
+:::::
+
+## Questions to ask: validation studies
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- Social media addiction is not a recognized psychiatric disorder, so this isn't a clinical diagnostic tool, but it appears good enough to use to draw conclusions about problematic social media use in the population.
+
+:::
+::: {.column width="50%"}
+![](images/webofscience_sm_article19.png)
+
+:::
+:::::
+
+
+
+
+## Links and other resources
+
+-   [UMD library guide for psychology majors on finding tests and assessments.](https://lib.guides.umd.edu/c.php?g=327087&p=3471586)
+
+-   The Leibniz Institute for the Social Sciences hosts an excellent [open-access repository for m measurement instruments](https://zis.gesis.org/?lang=en) along with citations and validation information. Note that some of these are not available in English.
+
+
+
+## Questions
+
+- What scale or scale(s) are available?
+
+- Are the items accessible? Are there multiple versions? How many questions and how are they scored?
+
+- Are there additional validation studies? Can you find discussions about the reliability or dimensionality of the measure?
+
+- Is the scale widely used? Are there important criticisms or limitations mentioned? Is there a debate that warrants consideration? Competing measures?
+
+
+
+

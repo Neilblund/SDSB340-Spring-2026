@@ -30,7 +30,7 @@ To access the ANES 2024 data, head over to [electionstudies.org](https://electio
 
 Under the "Download Data" heading, click on the button that says "CSV" to download the `.csv` formatted file. You'll want to place this a folder called "data" inside your current working directory. You do not need to unzip the file. We can do this from inside of R.
 
-If you've set this up correctly, the code below should import a data set with 4,496 observations
+If you've set this up correctly, the code below should import a data set with 4,964 observations
 
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)

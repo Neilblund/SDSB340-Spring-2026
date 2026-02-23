@@ -1,0 +1,926 @@
+---
+title: "Sampling"
+format:
+    revealjs:
+        theme: [blueyellow]
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+        filters:
+          - code-fullscreen
+bibliography: references.bib
+lightbox: true
+slide-level: 4
+execute:
+  echo: false
+---
+
+## Survey error
+
+## Total Survey Error
+
+![](images/lifecycle.png){fig-align="center" width="30%"}
+
+From [@groves2009survey]
+
+::: notes
+-   In previous classes we've mostly dealt with the kinds of errors that come from the left branch of the diagram: errors that come from the measurement process. In the next classes, we'll focus more on the RHS: errors that result from the process of attempting to represent a target population using (typically) less than the total number of people.
+:::
+
+## Total Survey error
+
+::::: columns
+::: {.column width="50%"}
+-   Errors of representation appear when there is some difference between who we end up measuring and who we want to measure.
+
+-   The [target population]{.yellow} is some finite set of observations we want to know something about.
+:::
+
+::: {.column width="50%"}
+![](images/lifecycle_rhs.png){fig-align="center" width="30%"}
+:::
+:::::
+
+## Target Populations
+
+-   The American National Election Study targets U.S. citizens age 18 or older living in the 48 contiguous states of the U.S. or Washington, D.C. during a period prior to or just after a U.S. presidential election.
+
+-   National Health and Nutrition Examination Survey targets the non-institutionalized civilian resident population of the U.S. in a given year.
+
+-   The Youth Risk Behavior Survey targets public and private school students in grades 9-12 in the United States in a given year.
+
+## Surveying the whole population
+
+::::: columns
+::: {.column width="50%"}
+-   The U.S. Census try to measure the entire population of interest.
+
+-   Obviously this is not practical for most surveys that seek to measure something about the U.S. population.
+:::
+
+::: {.column width="50%"}
+![](images/census-logo-sharing-card.jpg)
+:::
+:::::
+
+::: notes
+While its rare to do this when sampling *people*, its not uncommon for other kinds of research to work with entire populations: people who study members of congress, for instance, are typically working with data on all the current members.
+
+(This leads to some conceptual awkwardness, because a lot of important concepts in statistical inference assume we're working with a sample)
+:::
+
+## Not surveying the whole population
+
+-   More often, surveys will attempt to measure some sample of the target population.
+
+-   The hope is that the sampled units are representative of the target population, but to the extent they're not, this introduces new sources of error.
+
+::: notes
+Working with samples means we need to understand individual estimates as realizations of a repeatable process.
+:::
+
+## Sampling Frames
+
+::::: columns
+::: {.column width="60%"}
+-   A [sampling frame]{.yellow} is the list of elements in the target population
+-   A list of elements isn't always available: we might have a list of phone numbers, but not "all adults in the U.S."
+:::
+
+::: {.column width="40%"}
+![](images/Auckland_Yellow_pages.jpg)
+:::
+:::::
+
+## Sampling Frames and coverage error
+
+[coverage error]{.yellow} results from differences between the sampling frame and the target population.
+
+-   For example: we might want to measure all U.S. citizens, but our list of phone numbers leaves out unlisted numbers and people without phones.
+
+-   Random digit dialing gives a way around the first problem, but not the second.
+
+## Sampling Error
+
+[Sampling error]{.yellow} is the gap between the sampling frame and the sample.
+
+-   This is always present when we sample, but under the right conditions, we can say a lot about the likelihood of an error of a given size.
+
+## Sampling Distributions
+
+The [sampling distribution]{.yellow} is the distribution of sample statistics across *all possible realizations of a sample.*
+
+## Sampling Distributions
+
+```{mermaid}
+%%| fig-width: 6.5
+flowchart TB
+    pop(["🫧 Population
+    true mean: μ, std dev: σ"])
+
+    subgraph samples["📋 Samples of size n"]
+        s1["Sample 1
+        {y₁, y₂, …, yₙ}"]
+        s2["Sample 2
+        {y₁, y₂, …, yₙ}"]
+        s3["Sample 3
+        {y₁, y₂, …, yₙ}"]
+        sk["Sample k
+        {y₁, y₂, …, yₙ}"]
+    end
+
+    subgraph stats["🧮 Sample means"]
+        t1(["̄y₁"])
+        t2(["̄y₂"])
+        t3(["̄y₃"])
+        tk(["̄yₖ"])
+    end
+
+    hist["Sampling Distribution of ̄y
+    ─────────────────────
+    ░░░░░██▌░░░░░
+    ░░░░████▌░░░░
+    ░░░██████▌░░░
+    ░░████████▌░░
+    ─────────────────────
+"]
+
+    pop -->|"draw"| s1
+    pop -->|"draw"| s2
+    pop -->|"draw"| s3
+    pop -->|"draw"| sk
+
+    s1 --> t1
+    s2 --> t2
+    s3 --> t3
+    sk --> tk
+
+    t1 -->|"collect all ̄y values"| hist
+    t2 --> hist
+    t3 --> hist
+    tk --> hist
+
+    style pop fill:#4A90D9,color:#fff,stroke:#2c6fad
+    style s1 fill:#A8D5A2,stroke:#5a9e52
+    style s2 fill:#A8D5A2,stroke:#5a9e52
+    style s3 fill:#A8D5A2,stroke:#5a9e52
+    style sk fill:#A8D5A2,stroke:#5a9e52
+    style t1 fill:#F5A623,stroke:#c47d0e
+    style t2 fill:#F5A623,stroke:#c47d0e
+    style t3 fill:#F5A623,stroke:#c47d0e
+    style tk fill:#F5A623,stroke:#c47d0e
+    style hist fill:#E8D5F5,stroke:#9B59B6,color:#333
+
+
+```
+
+## Sampling Distribution: example
+
+Imagine we've got test scores for 8 students:
+
+$$
+72, 74, 76, 77, 81, 84, 85, 91
+$$
+
+::: fragment
+The sampling distribution for a sample of size 10 from this "population" would just be every possible combination of 2 values: $[72, 74], [72, 76], [72, 77]...$
+:::
+
+## Sampling Distribution: example
+
+```{r, echo=TRUE}
+data<-c(72, 74, 76, 77, 81, 84, 85, 91)
+# all possible samples of size 2:
+combn(data, 2)
+
+```
+
+## Sampling distribution: the central limit theorem
+
+-   Again, this isn't something we typically know. If we knew the population values, we wouldn't draw a sample in the first place.
+
+-   However, because of the central limit theorem, we *do* know some things about the sampling distributions of means and proportions.
+
+## Sampling distribution: CLT
+
+:::::: columns
+:::: {.column width="50%"}
+::: smaller
+-   The sampling distribution of the mean will be normally distributed.
+-   The mean of the sampling distribution will equal the population mean.
+-   The variance of the sampling distribution will equal $\sigma/\sqrt{n}$
+:::
+::::
+
+::: {.column width="50%"}
+```{mermaid}
+%%| fig-width: 5
+flowchart TB
+    pop(["🫧 Population
+    true mean: μ, std dev: σ"])
+
+    subgraph samples["📋 Samples of size n"]
+        s1["Sample 1
+        {y₁, y₂, …, yₙ}"]
+        s2["Sample 2
+        {y₁, y₂, …, yₙ}"]
+        s3["Sample 3
+        {y₁, y₂, …, yₙ}"]
+        sk["Sample k
+        {y₁, y₂, …, yₙ}"]
+    end
+
+    subgraph stats["🧮 Sample means"]
+        t1(["̄y₁"])
+        t2(["̄y₂"])
+        t3(["̄y₃"])
+        tk(["̄yₖ"])
+    end
+
+    hist["Sampling Distribution of ̄y
+    ─────────────────────
+    ░░░░░██▌░░░░░
+    ░░░░████▌░░░░
+    ░░░██████▌░░░
+    ░░████████▌░░
+    ─────────────────────
+    Shape: Normal
+    Center: E ̄y = μ
+    Spread: SE = σ divided by √n
+"]
+
+    pop -->|"draw"| s1
+    pop -->|"draw"| s2
+    pop -->|"draw"| s3
+    pop -->|"draw"| sk
+
+    s1 --> t1
+    s2 --> t2
+    s3 --> t3
+    sk --> tk
+
+    t1 -->|"collect all ̄y values"| hist
+    t2 --> hist
+    t3 --> hist
+    tk --> hist
+
+    style pop fill:#4A90D9,color:#fff,stroke:#2c6fad
+    style s1 fill:#A8D5A2,stroke:#5a9e52
+    style s2 fill:#A8D5A2,stroke:#5a9e52
+    style s3 fill:#A8D5A2,stroke:#5a9e52
+    style sk fill:#A8D5A2,stroke:#5a9e52
+    style t1 fill:#F5A623,stroke:#c47d0e
+    style t2 fill:#F5A623,stroke:#c47d0e
+    style t3 fill:#F5A623,stroke:#c47d0e
+    style tk fill:#F5A623,stroke:#c47d0e
+    style hist fill:#E8D5F5,stroke:#9B59B6,color:#333
+
+
+```
+:::
+::::::
+
+## Sampling variance: CLT
+
+::: smaller
+-   The sampling variance of the sample mean is: $$v(\bar{y}) = \frac{\sum^n_{i=1}(y_i - \bar{y})}{n-1} $$
+
+-   The sampling variance for a proportion would be: $$\frac{p(1-p)}{n}$$
+
+-   The standard error of the mean is just the square root of this sampling variance. $s(\bar{y}) = \sqrt{v(\bar{y})}$
+:::
+
+## Sampling distribution: CLT
+
+::::: columns
+::: {.column width="50%"}
+This is important because the mean and variance are all we really need to know about a normal distribution to know the probability of generating a particular value.
+:::
+
+::: {.column width="50%"}
+![](images/norm_colored.png)
+:::
+:::::
+
+## Sampling distribution: CLT
+
+The CLT is how we know the margin of error for a survey statistic: its the range that would contain 95% of sampled proportions in the sampling distribution.
+
+![](images/norm.png){fig-align="center" width="30%"}
+
+## Sampling distribution: CLT
+
+::::: {.columns}
+::: {.column width="50%"}
+
+$$.48 (1-.48) \approx .25$$
+
+::: fragment
+
+$$\sqrt{\frac{2.5}{1000}} = 0.005$$
+
+
+:::
+
+::: fragment
+
+
+$$ .005 \times 1.96 \approx 0.031 = 3.1\% $$
+:::
+
+:::
+::: {.column width="50%"}
+![](images/241011-election-poll-3x2-4c78ec.webp)
+:::
+:::::
+
+## Sampling distribution: CLT
+
+-   One key challenge here, is that the Central Limit Theorem assumes simple random sampling with replacement, but this isn't what we typically have in survey data.
+
+-   Accounting for these differences adds some additional complexity.
+
+## Sample designs
+
+### Simple random samples
+
+-   In simple random samples, all elements have an equal probability of being selected.
+
+-   This is the simplest method, but its also exceedingly rare in surveys because its inefficient.
+
+::: notes
+SRS is the easiest to understand and methodologically the easiest to work with.
+
+But its wildly inefficient for most applications.
+:::
+
+## Cluster-sampling
+
+-   In a cluster sample, "groups" of observations are sampled instead of sampling each individual.
+
+-   For instance: a survey of students might randomly select 50 classes and then interview all students in those classes.
+
+::: notes
+This is partly a cost-saving measure. It's much easier to create a sampling frame for "all city blocks" or "all classrooms" than to create one for "all people". Moreover, its more efficient because the selected units are close to each other.
+:::
+
+### Cluster-sampling
+
+::::: columns
+::: {.column width="60%"}
+-   Imagine you're gauging support for an upcoming referendum.
+-   You sample 2 city blocks to get an $n=100$
+-   (The population mean here is 50)
+:::
+
+::: {.column width="40%"}
+```{dot}
+//| fig-width: 5
+//| fig-height: 6
+
+digraph G {
+    rankdir=LR;
+
+    subgraph cluster_level4 {
+            node [shape=box, style=filled, fontname="Arial"]; 
+        rank= same;
+        label="City Blocks";
+        labeljust="";
+        labelloc = "t";   
+        style=filled;
+        color=lightgrey;
+        house1 [label="Block A\n(20% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house2 [label="Block B\n(30% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house3 [label="Block C\n(30% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house4 [label="Block D\n(50% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house5 [label="Block E\n(80% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house6 [label="Block F\n(90% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+    }
+   // house1 -> house2 -> house3 -> house4 -> house5 -> house6 [style="invis"]
+    
+    subgraph same_rank_group {
+        
+        a[label = "25%", shape=box, style="invis"];
+        b[label = "85%", shape=box, style="invis"];
+        c[label = "40%", shape=box, style="invis"];
+    }
+    house2 -> a [style="invis"]
+    house1 -> a [style="invis"]
+    house3 -> c [style="invis"]
+    house4 -> c [style="invis"]
+    house5 -> b [style="invis"]
+    house6 -> b [style="invis"]
+
+
+}
+
+
+
+```
+:::
+:::::
+
+### Cluster-sampling
+
+::::: columns
+::: {.column width="50%"}
+Depending on which blocks we sample, we can get some fairly bad errors here.
+:::
+
+::: {.column width="50%"}
+```{dot}
+//| fig-width: 5
+//| fig-height: 6
+
+digraph G {
+    rankdir=LR;
+    subgraph cluster_level4 {
+            node [shape=box, style=filled, fontname="Arial"]; 
+        rank= same;
+        label="City Blocks";
+        labeljust="";
+        labelloc = "t";   
+        style=filled;
+        color=lightgrey;
+        house1 [label="Block A\n(20% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house2 [label="Block B\n(30% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house3 [label="Block C\n(30% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house4 [label="Block D\n(50% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house5 [label="Block E\n(80% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house6 [label="Block F\n(90% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+    }
+   // house1 -> house2 -> house3 -> house4 -> house5 -> house6 [style="invis"]
+    subgraph same_rank_group {
+        
+        a[label = "25%", shape=box];
+        b[label = "85%", shape=box];
+        c[label = "40%", shape=box];
+    }
+    house2 -> a
+    house1 -> a
+    house3 -> c
+    house4 -> c
+    house5 -> b
+    house6 -> b
+}
+
+
+
+```
+:::
+:::::
+
+### Cluster-sampling
+
+:::::: columns
+:::: {.column width="50%"}
+The clustered estimate is still **unbiased** (the mean of the samples = 50), but it has much **higher variance** than you would expect given the sample size.
+
+::: fragment
+How much larger?
+:::
+::::
+
+::: {.column width="50%"}
+```{dot}
+//| fig-width: 5
+//| fig-height: 6
+digraph G {
+    rankdir=LR;
+
+    subgraph cluster_level4 {
+            node [shape=box, style=filled, fontname="Arial"]; 
+        rank= same;
+        label="City Blocks";
+        labeljust="";
+        labelloc = "t";   
+        style=filled;
+        color=lightgrey;
+        house1 [label="Block A\n(20% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house2 [label="Block B\n(30% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house3 [label="Block C\n(30% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house4 [label="Block D\n(50% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house5 [label="Block E\n(80% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+        house6 [label="Block F\n(90% support)\nn=50", fillcolor="#3498db", fontcolor=white];
+    }
+    
+   // house1 -> house2 -> house3 -> house4 -> house5 -> house6 [style="invis"]
+    house1 -> mytable [style="invis"]
+    house2 -> mytable [style="invis"]
+    house3 -> mytable [style="invis"]
+    house4 -> mytable [style="invis"]
+    house5 -> mytable [style="invis"]
+    house6 -> mytable [style="invis"]
+    
+
+
+
+    mytable[shape=plaintext, label=<<table>
+    <tr>
+    <td colspan="2">Sample</td>
+    <td>Estimate Prop.</td>
+    </tr>
+    <tr>
+    <td>A</td>
+    <td>B</td>
+    <td>.25</td>
+  </tr>
+  <tr>
+    <td>A</td>
+    <td>C</td>
+    <td>.25</td>
+  </tr>
+  <tr>
+    <td>A</td>
+    <td>D</td>
+    <td>.25</td>
+  </tr>
+  <tr>
+    <td>A</td>
+    <td>E</td>
+    <td>.50</td>
+  </tr>
+  <tr>
+    <td>A</td>
+    <td>F</td>
+    <td>.55</td>
+  </tr>
+  <tr>
+    <td>B</td>
+    <td>C</td>
+    <td>.30</td>
+  </tr>
+  <tr>
+    <td>B</td>
+    <td>D</td>
+    <td>.40</td>
+  </tr>
+  <tr>
+    <td>B</td>
+    <td>E</td>
+    <td>.55</td>
+  </tr>
+  <tr>
+    <td>B</td>
+    <td>F</td>
+    <td>.60</td>
+  </tr>
+  <tr>
+    <td>C</td>
+    <td>D</td>
+    <td>.40</td>
+  </tr>
+  <tr>
+    <td>C</td>
+    <td>E</td>
+    <td>.55</td>
+  </tr>
+  <tr>
+    <td>C</td>
+    <td>F</td>
+    <td>.60</td>
+  </tr>
+  <tr>
+    <td>D</td>
+    <td>E</td>
+    <td>.65</td>
+  </tr>
+  <tr>
+    <td>D</td>
+    <td>F</td>
+    <td>.70</td>
+  </tr>
+  <tr>
+    <td>E</td>
+    <td>F</td>
+    <td>.85</td>
+  </tr>
+  <tr>
+    <td colspan="2">Mean</td>
+    <td>0.50</td>
+  </tr>
+   <tr>
+    <td colspan="2">Variance</td>
+    <td>0.028</td>
+  </tr>
+  
+  </table>>]
+
+}
+
+
+```
+:::
+::::::
+
+### Cluster-sampling: design effects
+
+Since we're dealing with proportions, the variance under a simple random sample is just: $\frac{p(1-p)}{n}$
+
+. . .
+
+So, the variance under SRS is: $\frac{.5(1-.5)}{100} = 0.0025$
+
+. . .
+
+The sampling variance for the clustered samples is $\approx 0.03$, so the clustering increases the variance by $0.03/0.0025 = 12$
+
+### Cluster-sampling: design effects
+
+-   This ratio of the clustered variance relative to the estimate is called the [design effect]{.yellow} or $d^2$.
+
+-   Note that the $d^2$ will depend on what you're estimating and will increase or decrease depending on the amount of homogeneity within clusters with respect to the thing you're estimating.
+
+## Stratification
+
+### Stratification
+
+-   [Strata]{.yellow} are *mutually exclusive* and *collectively exhaustive* subsets of the population.
+
+-   Stratified Sampling means separating the elements into strata and then drawing a sample from each one.
+
+### Stratification
+
+```{mermaid}
+%%| fig-width: 8
+%%| fig-height: 7
+
+flowchart TB
+    pop["🫧 POPULATION\nAll individuals of interest"]
+
+    subgraph strata[" "]
+        direction LR
+        st1["Stratum A\ne.g. Rural areas"]
+        st2["Stratum B\ne.g. Suburbs"]
+        st3["Stratum C\ne.g. Urban areas"]
+    end
+
+    subgraph sampling[" "]
+        direction LR
+        sa1["Sample A\nn₁ individuals"]
+        sa2["Sample B\nn₂ individuals"]
+        sa3["Sample C\nn₃ individuals"]
+    end
+
+    combined["Combine samples\nFinal stratified sample\nn₁ + n₂ + n₃ = n"]
+
+    note["📌 Proportional allocation:\n nᵢ / n  =  Nᵢ / N\nEach stratum represented\nproportionally to its size"]
+
+    pop --> st1
+    pop --> st2
+    pop --> st3
+
+    st1 -->|"random\nsample"| sa1
+    st2 -->|"random\nsample"| sa2
+    st3 -->|"random\nsample"| sa3
+
+    sa1 --> combined
+    sa2 --> combined
+    sa3 --> combined
+
+    note -..-> combined
+
+    style pop fill:#1D4ED8,color:#fff,stroke:#1D4ED8
+    style st1 fill:#065F46,color:#fff,stroke:#059669
+    style st2 fill:#92400E,color:#fff,stroke:#D97706
+    style st3 fill:#6B21A8,color:#fff,stroke:#A855F7
+    style sa1 fill:#059669,color:#fff,stroke:#34D399
+    style sa2 fill:#D97706,color:#fff,stroke:#FCD34D
+    style sa3 fill:#A855F7,color:#fff,stroke:#D8B4FE
+    style combined fill:#1E3A5F,color:#fff,stroke:#3B82F6
+    style note fill:#1E293B,color:#94A3B8,stroke:#334155
+
+```
+
+### Stratification
+
+Stratification can *reduce* sampling variance because it limits the chance of drawing highly non-representative samples.
+
+::::: columns
+::: {.column width="50%"}
+-   For instance, the ANES stratifies counties/metro areas based on vote share, turnout, and region
+-   This ensures that there are no potential random samples that entirely exclude very Republican or very Democratic counties.
+:::
+
+::: {.column width="50%"}
+![](images/anes_sample_method.png)
+:::
+:::::
+
+
+### Stratification
+
+::::: {.columns}
+::: {.column width="50%"}
+Think back to the example of drawing samples of n=2 from 8 student test scores
+:::
+::: {.column width="50%"}
+
+![](images/student_scores1.png){fig-align="center" width="15%"}
+:::
+:::::
+
+### Stratification
+
+::::: {.columns}
+::: {.column width="50%"}
+
+Consider stratifying "low" and "high" scores.
+
+
+:::
+::: {.column width="50%"}
+
+![](images/student_scores2.png){fig-align="center" width="20%"}
+:::
+:::::
+
+
+
+
+### Stratification
+
+::::: {.columns}
+::: {.column width="50%"}
+The "worst" samples are no longer possible here: because my sample always contains at least some "high" and some "low" scorers.
+:::
+::: {.column width="50%"}
+![](images/stratified_table.png){fig-align="center" width="37%"}
+
+:::
+:::::
+
+
+### Stratification
+
+::::: {.columns}
+::: {.column width="50%"}
+- Sampling variance under SRS: $16$
+- Sampling variance under stratification: $4.5$
+- Design effect: $.28$
+:::
+::: {.column width="50%"}
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+data<-data.frame( data=   c(72, 74, 76, 77, 81, 84, 85, 91),
+                  strata = c(1, 1, 1, 1, 2, 2, 2, 2)
+                   )
+
+
+
+combos<-combn(seq(nrow(data)), 2)
+cb<-apply(combos, 1, function(x) data[x,])|>dplyr::bind_cols()
+colnames(cb)<-c('obs1', 'strata1', 'obs2', 'strata2' )
+rownames(cb)<-NULL
+cb<-cb[,c(1, 3, 2, 4)]
+cb$`Possible with stratified sample?`<- factor(apply(cb[,c(3,4)], 1, function(x) length(unique(x))), labels=c("No", "Yes"))
+cb$means<-rowMeans(cb[,1:2])
+cb$sample<-'SRS'
+
+bind_rows(cb, cb|>filter(`Possible with stratified sample?` == "Yes")|>mutate(sample="Stratified"))|>
+  ggplot(aes(x=means, fill=sample) )  + geom_histogram(binwidth = 3, color='black') +
+  theme_bw() +
+  labs(x='Sample means')+
+  facet_wrap(~sample, ncol=1) +
+  theme(legend.position = "none")
+
+```
+
+:::
+:::::
+
+
+### Stratification: requirements
+
+- Note that stratification assumes I already have the stratification variables before I conduct the survey.
+
+- The benefits of stratification are largest when my stratifying variable is correlated with the stuff I want to estimate (which is why the ANES stratifies on things like regional partisanship and turnout)
+
+
+### Stratification: proportional allocation to strata
+
+- Under proportional allocation to strata, the number of units selected from each strata is proportional to the size of the strata in the population. 
+
+- These designs are considered "self-weighting": they're already representative of the population.
+
+### Stratification: disproportionate allocation
+
+- Under some conditions, disproportionate allocation may further reduce sampling variance, although this is risky.
+
+- Disproportionate allocation can make it more feasible to study certain subgroups: if I want to get reliable estimates of the views of Alaskans (.2% of the population), I'd otherwise need a huge sample.
+
+### Stratification: disproportionate allocation
+
+- Under disproportionate allocation to strata, strata means must be re-weighted to account for over-representation of certain groups.
+
+- For example: if strata A is $12\%$ of the population but $24\%$ of the sample, then each individual respondent in strata A would be given a weight of $12/24 = .5$
+
+
+
+
+::: notes
+Critical detail: stratification, when performed correctly, *reduces* sampling variance.
+:::
+
+
+
+### Multi-stage sampling
+
+Multi-stage sampling is when population units can be divided into clusters and multiple stages of sampling are required
+
+- For the first stage, a sample is drawn from the clusters: Primary Sampling Units (PSUs).
+
+- For the second stage, a sample is drawn from the units within the sampled clusters: Secondary Sampling Units (SSUs).
+
+### Multi-stage sampling
+
+Examples:
+
+- Select 100s school randomly in MD, sample randomly in each
+school.
+- Stage 1 = Census blocks, Stage 2 = households
+
+
+### Finite population corrections
+
+-   Survey samples are typically drawn without replacement, meaning that no element should be sampled more than once.
+
+-   When the sample is only a small share of the population, the effect of this is trivial, but it can influence estimates when the sampling fraction is large. 
+
+### Finite population corrections
+
+The finite population correction adjusts the estimated variance to account for this: 
+
+$$v(\bar{y}) = \frac{1-f}{n} s^2$$
+
+where $f$ is the fraction of the population that was sampled. 
+
+::: fragment
+
+For most surveys, $f$ miniscule, so this doesn't matter much! 
+
+:::
+
+
+## Response rates
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- Stratification isn't the only thing we need to account for. 
+
+- Even where our sampling strategy is perfect, issues like differential non-response pose major problems for representativeness. 
+
+- Weighting offers some (imperfect) methods to mitigate this as well.
+:::
+::: {.column width="50%"}
+![](images/response_rates.webp)
+
+:::
+:::::
+
+
+
+
+### Snowball Samples
+
+- Snowball samples are a common way to survey hard-to-reach populations or groups: people involved in organized crime, people without a permanent address, trans youth etc.
+
+- They work like a chain letter, where a small number of respondents are identified, and then asked to recommend others who are also part of the sampling frame. 
+
+::: fragment
+
+For small, densely connected communities, a snowball sample may allow researchers to get something approaching the full population.
+
+:::
+
+
+::: notes
+Robert Benford and David Snow used snowball sampling to collect data on homeless advocacy organizations in a selection of cities. It's entirely plausible that a method like this could retrieve every homeless advocacy org in an area.
+:::
+
+### Convenience Samples
+
+- The survey for this class is best described as a convenience sample. We're not really making any effort to retrieve a representative sample of the population.
+
+- This means we can't really generalize the results to the population, but convenience samples can still be useful, especially for something like piloting a survey.
+
+
+::: notes
+The survey for this class is best described as a convenience sample. They're commonly used for pilots.
+:::
+
+
+## References

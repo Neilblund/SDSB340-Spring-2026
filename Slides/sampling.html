@@ -3321,7 +3321,7 @@ display:block!important;
 </div>
 </div>
 </section><section id="sampling-frames-and-coverage-error" class="title-slide slide level2 center"><h2>Sampling Frames and coverage error</h2>
-<p><span class="yellow">coverage error</span> results from differences between the sampling frame and the target population.</p>
+<p><span class="yellow">Coverage error</span> results from differences between the sampling frame and the target population.</p>
 <ul>
 <li class="fragment"><p>For example: we might want to measure all U.S. citizens, but our list of phone numbers leaves out unlisted numbers and people without phones.</p></li>
 <li class="fragment"><p>Random digit dialing gives a way around the first problem, but not the second.</p></li>
@@ -3539,7 +3539,9 @@ display:block!important;
 </section><section id="sampling-distribution-clt-3" class="title-slide slide level2 center"><h2>Sampling distribution: CLT</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
+<div class="fragment">
 <p><span class="math display">\[.48 (1-.48) \approx .25\]</span></p>
+</div>
 <div class="fragment">
 <p><span class="math display">\[\sqrt{\frac{2.5}{1000}} = 0.005\]</span></p>
 </div>
@@ -3829,8 +3831,8 @@ display:block!important;
 </div>
 </section><section id="stratification-requirements" class="title-slide slide level3 center"><h3>Stratification: requirements</h3>
 <ul>
-<li class="fragment"><p>Note that stratification assumes I already have the stratification variables before I conduct the survey.</p></li>
-<li class="fragment"><p>The benefits of stratification are largest when my stratifying variable is correlated with the stuff I want to estimate (which is why the ANES stratifies on things like regional partisanship and turnout)</p></li>
+<li class="fragment"><p>Note that stratification assumes <strong>I already have the stratification variables before I conduct the survey.</strong> This means we’re fairly limited in the characteristics we can use.</p></li>
+<li class="fragment"><p>The benefits of stratification are largest when there’s low variability within a strata.</p></li>
 </ul></section><section id="stratification-proportional-allocation-to-strata" class="title-slide slide level3 center"><h3>Stratification: proportional allocation to strata</h3>
 <ul>
 <li class="fragment"><p>Under proportional allocation to strata, the number of units selected from each strata is proportional to the size of the strata in the population.</p></li>
@@ -3876,7 +3878,7 @@ display:block!important;
 <div class="fragment">
 <p>For most surveys, <span class="math inline">\(f\)</span> miniscule, so this doesn’t matter much!</p>
 </div>
-</section></section><section><section id="response-rates" class="title-slide slide level2 center"><h2>Response rates</h2>
+</section><section id="non-response-weights" class="title-slide slide level3 center"><h3>Non-response weights</h3>
 <div class="columns">
 <div class="column" style="width:50%;">
 <ul>
@@ -5337,7 +5339,7 @@ window.QuartoSupport = function () {
         }
       }
     });
-    </script><script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","openEffect":"zoom","selector":".lightbox","descPosition":"bottom","loop":false});
+    </script><script>var lightboxQuarto = GLightbox({"descPosition":"bottom","closeEffect":"zoom","loop":false,"openEffect":"zoom","selector":".lightbox"});
     window.onload = () => {
       lightboxQuarto.on('slide_before_load', (data) => {
         const { slideIndex, slideNode, slideConfig, player, trigger } = data;

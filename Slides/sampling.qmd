@@ -104,7 +104,7 @@ Working with samples means we need to understand individual estimates as realiza
 
 ## Sampling Frames and coverage error
 
-[coverage error]{.yellow} results from differences between the sampling frame and the target population.
+[Coverage error]{.yellow} results from differences between the sampling frame and the target population.
 
 -   For example: we might want to measure all U.S. citizens, but our list of phone numbers leaves out unlisted numbers and people without phones.
 
@@ -323,7 +323,11 @@ The CLT is how we know the margin of error for a survey statistic: its the range
 ::::: {.columns}
 ::: {.column width="50%"}
 
+::: fragment
+
 $$.48 (1-.48) \approx .25$$
+
+:::
 
 ::: fragment
 
@@ -804,9 +808,9 @@ bind_rows(cb, cb|>filter(`Possible with stratified sample?` == "Yes")|>mutate(sa
 
 ### Stratification: requirements
 
-- Note that stratification assumes I already have the stratification variables before I conduct the survey.
+- Note that stratification assumes **I already have the stratification variables before I conduct the survey.** This means we're fairly limited in the characteristics we can use.
 
-- The benefits of stratification are largest when my stratifying variable is correlated with the stuff I want to estimate (which is why the ANES stratifies on things like regional partisanship and turnout)
+- The benefits of stratification are largest when there's low variability within a strata.
 
 
 ### Stratification: proportional allocation to strata
@@ -874,7 +878,7 @@ For most surveys, $f$ miniscule, so this doesn't matter much!
 :::
 
 
-## Response rates
+### Non-response weights
 
 ::::: {.columns}
 ::: {.column width="50%"}
@@ -890,6 +894,7 @@ For most surveys, $f$ miniscule, so this doesn't matter much!
 
 :::
 :::::
+
 
 
 

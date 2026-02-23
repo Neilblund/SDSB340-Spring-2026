@@ -3517,7 +3517,7 @@ display:block!important;
 </section><section id="sampling-variance-clt" class="title-slide slide level2 center"><h2>Sampling variance: CLT</h2>
 <div class="smaller">
 <ul>
-<li class="fragment"><p>The sampling variance of the sample mean is: <span class="math display">\[v(\bar{y}) = \frac{\sum^n_{i=1}(y_i - \bar{y})}{n-1} \]</span></p></li>
+<li class="fragment"><p>The sampling variance of the sample mean is: <span class="math display">\[v(\bar{y}) = \frac{\sum^n_{i=1}(y_i - \bar{y})^2}{n-1} \]</span></p></li>
 <li class="fragment"><p>The sampling variance for a proportion would be: <span class="math display">\[\frac{p(1-p)}{n}\]</span></p></li>
 <li class="fragment"><p>The standard error of the mean is just the square root of this sampling variance. <span class="math inline">\(s(\bar{y}) = \sqrt{v(\bar{y})}\)</span></p></li>
 </ul>
@@ -5339,7 +5339,7 @@ window.QuartoSupport = function () {
         }
       }
     });
-    </script><script>var lightboxQuarto = GLightbox({"descPosition":"bottom","closeEffect":"zoom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+    </script><script>var lightboxQuarto = GLightbox({"descPosition":"bottom","openEffect":"zoom","loop":false,"closeEffect":"zoom","selector":".lightbox"});
     window.onload = () => {
       lightboxQuarto.on('slide_before_load', (data) => {
         const { slideIndex, slideNode, slideConfig, player, trigger } = data;

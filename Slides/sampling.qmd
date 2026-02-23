@@ -293,7 +293,7 @@ flowchart TB
 ## Sampling variance: CLT
 
 ::: smaller
--   The sampling variance of the sample mean is: $$v(\bar{y}) = \frac{\sum^n_{i=1}(y_i - \bar{y})}{n-1} $$
+-   The sampling variance of the sample mean is: $$v(\bar{y}) = \frac{\sum^n_{i=1}(y_i - \bar{y})^2}{n-1} $$
 
 -   The sampling variance for a proportion would be: $$\frac{p(1-p)}{n}$$
 

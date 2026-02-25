@@ -1,0 +1,275 @@
+---
+title: "Quarto/Markdown example"
+format: 
+  html: 
+   toc: true
+   self-contained: true
+   df-print: paged
+   code-link: true
+   lightbox: true
+---
+
+```{r setup_actual}
+#| include: FALSE
+knitr::opts_chunk$set(echo = TRUE, 
+                      message=FALSE, 
+                      warning =FALSE)
+```
+
+[Quarto](https://quarto.org/) documents are a markdown format for combining code and text. They're similar to Jupyter notebooks, although they trade some ease-of-use for more flexibility in formatting.
+
+## Making a Quarto Document
+
+R-Studio provides native support for writing Quarto documents. To create a new one, go to **file -\> New file -\> Quarto Document**.
+
+### The Visual Editor
+
+By default, your new document will open in the [visual editor](https://quarto.org/docs/visual-editor/). This allows you to write a lot of your document using point-and-click commands. It can be a bit buggy, though, and so you might find you still need to know some of the basics to get things working.
+
+![Visual editor](images/visual-editing.png)
+
+You can switch between the visual editor and the source editor by clicking the tab at the top left of your window
+
+![Switching modes](images/visual-editing-switch-modes.png)
+
+# YAML header options
+
+The top of your Quarto document contains the header information in [YAML format](https://quarto-tdg.org/yaml). The settings here control a lot of the formatting and meta data for the entire document like the author, title, and output format.
+
+Here's a good general-purpose setup you can use for submitting assignments.
+
+``` markdown
+---
+title: "Quarto/Markdown example"
+author: "Your name here"
+format: 
+  html: 
+   toc: true
+   self-contained: true
+   df-print: paged
+   code-link: true
+lightbox: true
+---
+```
+
+You can also try [adding a theme](https://quarto.org/docs/output-formats/html-themes.html) here if you want to customize your output.
+
+## Code chunks
+
+You can create an R code chunk by writing 3 backticks followed by `{r}` (and then three more \`\`\` to end the chunk)
+
+```` markdown
+```{{r}}
+library(tidyverse)
+
+# ... R code here
+
+```
+````
+
+You can also execute an Python code (provided you have Python installed on your device) by writing 3 backticks followed by `{python}`:
+
+```` markdown
+```{{python}}
+
+import matplotlib.pyplot as plt
+
+
+```
+````
+
+## Using a code chunk
+
+Quarto makes it easy to mix code, written text, and plots and tables in the same document.
+
+::: panel-tabset
+### Code
+
+```` markdown
+```{{r}}
+#| echo: TRUE
+library(tidyverse)
+data(mtcars)
+mtcars|>
+  group_by(gear)|>
+  summarize(mean_mpg = mean(mpg))
+
+```
+````
+
+### Output
+
+```{r}
+library(tidyverse)
+data(mtcars)
+mtcars|>
+  group_by(gear)|>
+  summarize(mean_mpg = mean(mpg))
+
+```
+:::
+
+### Chunk options
+
+You can add some additional code options by adding a comma after the `r` followed by some chunk arguments:
+
+```` markdown
+```{{r}}
+#| echo: true
+library(tidyverse)
+```
+````
+
+Some common chunk options are:
+
+-   `eval`: Whether to run the code within the chunk (true or false). Default is true.
+-   `echo`: Whether to show the code (`echo=FALSE` would show output, but not the code itself)
+-   `include`: Whether to include the code and its output in the final document. If false, the code runs, but nothing appears in the output.
+-   `warning`: Whether to show warning messages.
+-   `message`: Whether to show other kinds of messages (particularly package loading messages)
+-   `code-fold`: Automatically hide the code (but allow users to click to show it)
+
+### Setup chunks
+
+You can use a setup chunk to set some defaults for code chunks throughout the document. I typically use a setup chunk with these options set as defaults:
+
+```` markdown
+```{{r setup}}
+#| include: FALSE
+knitr::opts_chunk$set(echo = TRUE, 
+                      message=FALSE, 
+                      warning =FALSE)
+```
+````
+
+# Markdown
+
+You can use [markdown](https://quarto.org/docs/authoring/markdown-basics.html) in Quarto documents to write nicely formatted text. You're probably already familiar with the basics of markdown syntax if you've use Jupyter notebooks before, but here are some common operations:
+
+## Headings
+
+Using \# at the start of a line outside a code chunk will make a section heading:
+
+``` markdown
+# Heading 1
+
+## Heading 2
+
+### Heading 3
+```
+
+## Text formatting
+
+``` markdown
+*italics*, **bold**, ***bold italics***
+```
+
+*italics*, **bold**, ***bold italics***
+
+## Hyperlinks
+
++------------------------+------------------------+
+| Markdown               | Output                 |
++========================+========================+
+| ``` markdown           | [umd.edu](umd.edu)     |
+| [umd.edu](umd.edu)     |                        |
+| ```                    |                        |
++------------------------+------------------------+
+| ``` markdown           | [a text link](umd.edu) |
+| [a text link](umd.edu) |                        |
+| ```                    |                        |
++------------------------+------------------------+
+|                        |                        |
++------------------------+------------------------+
+
+# Knitting
+
+Once you've finished writing your Quarto document, you can knit the results to produce a compiled file. To knit, you can hit the "Render" button at the top of your script window, or just press **CTRL + SHIFT + K**
+
+Note that successfully knitting your file will require you to write code that can be executed in sequential order without producing any errors. If you do something like try to use a command without first loading the library, the knitting will fail until you fix the problem. This can be annoying, but the benefit is that you can be assured that the report you've compiled contains code that actually works.
+
+# Example document
+
+Try copying the code below into a blank Quarto document and knitting to see the results.
+
+```` markdown
+---
+title: "Quarto/Markdown example"
+format: 
+  html: 
+   toc: true
+   self-contained: true
+   df-print: paged
+   code-link: true
+lightbox: true
+---
+
+```{{r setup}}
+#| include: FALSE
+knitr::opts_chunk$set(echo = TRUE, 
+                      message=FALSE, 
+                      warning =FALSE)
+```
+
+Paste all this stuff into a new empty Quarto document and knit it to create some HTML output.
+
+## Example
+
+Here's an example of making a table from the [NHANES](https://www.cdc.gov/nchs/nhanes/index.html) data.
+
+Note that the `code-fold` option is set to `true` for both chunks, so the R code is collapsed until you press the button to expand it:
+
+```{{r}}
+#| code-fold: true
+library(tidyverse)
+library(gt)
+nhanes<-read_csv("https://raw.githubusercontent.com/Neilblund/SDSB340-Spring-2026/refs/heads/master/Data/nhanes.csv")
+
+comp_hours<-nhanes|>
+  filter(Age>=18)|>
+  mutate(Education = fct_relevel(Education, '8th Grade', 
+                                 '9 - 11th Grade',
+                                 'High School',
+                                 'Some College',
+                                 'College Grad'
+  ))|>
+  group_by(Education)|>
+  summarize( CompHrsDay= mean(CompHrsDay%in%c('4_hr', 'More_4_hr'), 
+                              na.rm=T))|>
+  
+  drop_na()
+
+comp_hours|>
+  gt()|>
+  fmt_percent(columns = CompHrsDay)|>
+  cols_label(CompHrsDay = "% 4+ hours on the computer daily")|>
+  tab_source_note("Source: National Health and Nutrition Examination Survey 2024")
+
+
+```
+
+
+Here's an example of creating a figure in ggplot to display the same data.
+
+
+```{{r}}
+#| code-fold: true
+comp_hours|>
+  ggplot(aes(x=Education, y=CompHrsDay)) +
+  geom_bar(stat='identity', fill='maroon') +
+  theme_minimal() +
+  labs(y="Percent",
+       caption ="Source: National Health and Nutrition Examination Survey 2024",
+       title = 'Respondents with 4+ hours on the computer daily',
+       subtitle='by education'
+       ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme(
+    axis.text.x = element_text(size=10),
+    axis.text.y = element_text(size=10),
+    axis.title =element_text(size=12, face="bold"),
+    title = element_text(size=14, face='bold')
+)
+```
+
+````

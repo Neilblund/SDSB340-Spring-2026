@@ -1,0 +1,655 @@
+---
+title: "Confidence, significance and variance"
+format:
+    revealjs:
+        theme: [clean]
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+        filters:
+          - code-fullscreen
+bibliography: references.bib
+lightbox: true
+slide-level: 4
+execute:
+  echo: false
+---
+
+## Shy Trump effect
+
+::::: columns
+::: {.column width="50%"}
+-   What does this mean?
+
+-   How would we estimate it? How does weighting impact that estimation?
+:::
+
+::: {.column width="50%"}
+![](images/pew_shytrump.png)
+:::
+:::::
+
+## Central Limit Theorem and sampling distributions
+
+```{=html}
+<center>
+<iframe src="images/clt_visualization.html" width="900" height="600"></iframe>
+</center>
+```
+
+## Central Limit Theorem and sampling distributions
+
+Under the Central Limit Theorem, we know that the sampling distribution of a sample mean is:
+
+:::::: columns
+::: {.column width="50%"}
+1.  Normally Distributed
+2.  Centered around the population mean
+3.  Has a variance of $\frac{s^2}{n-1}$ or standard error of $\sqrt{\frac{s^2}{n-1}}$
+:::
+
+:::: {.column width="50%"}
+::: fragment
+![](images/central_limit_theorem.webp)
+:::
+::::
+::::::
+
+
+## Sample variance
+
+Variance of the sample mean $\bar{y}$ is:
+
+$$s^2 = \frac{\sum^n_{i=1}(y_i - \bar{y})^2}{n-1}$$
+
+
+$\bar{y}$ is the sample mean, $n$ is the sample size, and $y_i$ is a single observation.
+
+. . .
+
+The standard error, or the standard deviation of the *sampling distribution* of $\bar{y}$ is $\sqrt{\frac{s^2}{n-1}}$
+
+## Sample variance
+
+Variance of a  sample **proportion** is:
+
+$$s^2 = {p(1-p)}$$
+
+$p$ is the sample proportion.
+
+. . .
+
+The standard error, or the standard deviation of the *sampling distribution* of $\bar{y}$ is $\sqrt{\frac{s^2}{n}}$
+
+## The distribution of sampling errors
+
+Our knowledge of the sampling distribution is also knowledge about the distribution of sampling error.
+
+. . .
+
+"The sampling distribution is centered on the population mean" = "the distribution of sampling errors is centered on zero"
+
+. . .
+
+"The standard error of the sampling distribution is $\sqrt{\frac{s^2}{n-1}}$" = "The sampling distribution of sampling errors is $\sqrt{\frac{s^2}{n-1}}$"
+
+## The distribution of sampling errors
+
+The "margin of error" on a poll is the region of the sampling distribution within $\pm 1.96$ standard errors of the sample mean:
+
+```{r}
+#| fig-align: center
+
+library(ggplot2)
+
+# Define parameters
+mean_val <- 0
+sd_val <- 1
+# 95% CI is roughly mean +/- 1.96 * sd
+lower_bound <- qnorm(0.025, mean = mean_val, sd = sd_val)
+upper_bound <- qnorm(0.975, mean = mean_val, sd = sd_val)
+
+# Create the plot
+ggplot(data.frame(x = c(mean_val - 4*sd_val, mean_val + 4*sd_val)), aes(x = x)) +
+  # Fill the 95% area
+  stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val),
+                xlim = c(lower_bound, upper_bound),
+                geom = "area", fill = "skyblue", alpha = 0.6) +
+  # Draw the full curve
+  stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val)) +
+  labs(title = "95% Filled Normal Distribution",
+       subtitle = "Area within 1.96 SE of the mean",
+       x = "Sample mean", y = "Density") +
+  theme_minimal()
+```
+
+## The distribution of sampling errors
+
+For instance, if:
+
+-   $n = 500$
+-   And the population variance is $v = 5$
+
+. . .
+
+Then the region within 1.96 standard errors of the sample mean is $\pm 0.196$
+
+$SE_\bar{y} = \sqrt{5/(500-1)} \approx 0.1$
+
+. . .
+
+$0.1 \times 1.96 = 0.196$
+
+
+
+
+## The distribution of sampling errors
+
+We don't really test this in the real world, but we can use R to simulate it:
+
+```{r, cache=TRUE, echo=TRUE}
+set.seed(2000)
+Mu <- 10 # population mean
+var <- 5 # population variance
+n <- 500 # sample size
+sample_errors<-numeric(length = 100000) 
+# 100,000 repeated samples
+for(i in 1:100000){
+  sample_mean<-mean(rnorm(n = n, mean = Mu, sd = sqrt(5)))
+  sample_errors[i]<- sample_mean - Mu
+}
+# 95% of the errors are between:
+quantile(sample_errors, c(.025, .975))
+
+```
+
+## Confidence intervals
+
+- The margin of error - of an estimate plus or minus some expected error - is referred to in more general settings as a **confidence interval**
+
+- Technically, a 95% confidence interval means that "95% of sample confidence intervals drawn from this same population would contain the true population parameter."
+
+- More succinctly, a 95% confidence interval is the range of values that is *likely to contain* the true population value.
+
+
+## The distribution of sampling errors: caveat
+
+-   If the sample is sufficiently large ($\approx n\gt30$), we can estimate the population variance using the sample variance (the denominator for standard error calculations is $n-1$ to adjust for the loss of degrees of freedom from estimating the sample variance)
+
+-   For proportions, the population variance is a function of the proportion itself, so we don't even need the $n-1$ part.
+
+
+
+
+
+## Sampling errors and significant differences
+
+::::: columns
+::: {.column width="50%"}
+-   The idea of a "significant difference" also relies on an inference about the sampling distribution.
+-   In essence, this is a question of the sampling distribution of the *difference* between two proportions or means.
+:::
+
+::: {.column width="50%"}
+![](images/pew_shytrump.png)
+:::
+:::::
+
+## Sampling errors and significant differences
+
+I should be able to make inferences about the sampling distribution of the differences between two groups using the same knowledge we have about the sampling distribution of an individual sample mean.
+
+```{r}
+
+library(ggplot2)
+
+# Define parameters
+mean_val <- 0
+sd_val <- 1
+mean_val2<-4
+sd_val2<-1
+# 95% CI is roughly mean +/- 1.96 * sd
+lower_bound <- qnorm(0.025, mean = mean_val, sd = sd_val)
+upper_bound <- qnorm(0.975, mean = mean_val, sd = sd_val)
+
+lower_bound2 <- qnorm(0.025, mean = mean_val2, sd = sd_val2)
+upper_bound2 <- qnorm(0.975, mean = mean_val2, sd = sd_val2)
+
+
+# Create the plot
+ggplot(data.frame(x = c(mean_val - 8*sd_val, mean_val + 8*sd_val)), aes(x = x)) +
+  # Fill the 95% area
+ # stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val),
+#                xlim = c(lower_bound, upper_bound),
+#                geom = "area", fill = "skyblue", alpha = 0.6) +
+  # Draw the full curve
+    # Fill the 95% area
+ # stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val),
+#                xlim = c(lower_bound, upper_bound),
+#                geom = "area", fill = "skyblue", alpha = 0.6) +
+  # Draw the full curve
+  stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val), lwd=1) +
+  
+ # stat_function(fun = dnorm, args = list(mean = mean_val2, sd = sd_val2),
+#                xlim = c(lower_bound, upper_bound),
+#                geom = "area", fill = "orange", alpha = 0.6) +
+  # Draw the full curve
+  stat_function(fun = dnorm, args = list(mean = mean_val2, sd = sd_val2), lty=2, lwd=1) +
+    # Fill the 95% area
+ ## stat_function(fun = dnorm, args = list(mean = mean_val2, sd = sd_val2),
+  #              xlim = c(lower_bound, upper_bound),
+  #              geom = "area", fill = "orange", alpha = 0.6) +
+  # Draw the full curve
+  labs(title = "Two groups with different means",
+       x = "", y = "Density") +
+  theme_minimal()
+
+```
+
+
+
+## Sampling errors and significant differences
+
+
+In this context, "statistical significance" refers to the chances that two groups with the *same population mean* would have a sample mean at least as large as the one we observe in our sample.
+
+. . .
+
+In other words, if actual $Y_1 = Y_0$ (i.e. the population averages are equal), how often would I see a sampling error that resulted in a difference of at least $\pm 1.2$?
+
+```{r}
+#| fig-align: center
+
+library(ggplot2)
+library(dplyr)
+
+# --- Simulate two groups ---
+set.seed(42)
+n <- 100
+group_a <- rnorm(n, mean = 50, sd = 10)
+group_b <- rnorm(n, mean = 50, sd = 10)
+
+df <- data.frame(
+  value = c(group_a, group_b),
+  group = rep(c("Group A", "Group B"), each = n)
+)
+
+# --- Compute summary stats ---
+stats <- df %>%
+  group_by(group) %>%
+  summarise(
+    mean  = mean(value),
+    se    = sd(value) / sqrt(n()),
+    .groups = "drop"
+  )
+
+# --- Run t-test ---
+ttest <- t.test(value ~ group, data = df)
+p_val <- ttest$p.value
+p_label <- ifelse(p_val < 0.001, "p < 0.001", paste0("p = ", round(p_val, 3)))
+
+# --- Plot ---
+ggplot() +
+  # Jittered raw data points
+  geom_jitter(
+    data = df,
+    aes(x = group, y = value, color = group),
+    width = 0.15, alpha = 0.25, size = 1.2
+  ) +
+  # Shaded ±1 SE band (as a crossbar)
+ # geom_crossbar(
+#    data = stats,
+#    aes(x = group, y = mean, ymin = mean - se, ymax = mean + se, fill = group),
+#    width = 0.25, alpha = 0.4, color = NA
+#  ) +
+  # Mean point
+  geom_point(
+    data = stats,
+    aes(x = group, y = mean, color = group),
+    size = 5, shape = 18
+  ) +
+  # Mean ± 1 SE error bar
+#  geom_errorbar(
+#    data = stats,
+#    aes(x = group, y = mean, ymin = mean - se, ymax = mean + se, color = group),
+#    width = 0.12, linewidth = 1.2
+#  ) +
+  # Difference arrow + label
+  annotate("segment",
+    x = 1.55, xend = 1.55,
+    y = stats$mean[1], yend = stats$mean[2],
+    arrow = arrow(ends = "both", length = unit(0.08, "inches"), type = "closed"),
+    color = "gray30", linewidth = 0.7
+  ) +
+  annotate("text",
+    x = 1.67, y = mean(stats$mean),
+    label = paste0("Δ = ", round(diff(stats$mean), 1)),
+    size = 3.5, color = "gray30"
+  ) +
+  scale_color_manual(values = c("Group A" = "#2196F3", "Group B" = "#E91E63")) +
+  scale_fill_manual( values = c("Group A" = "#2196F3", "Group B" = "#E91E63")) +
+  labs(
+    title    = "Difference of Means Test",
+    subtitle = "Diamond = mean  |  Group A SD = 10, Group B SD = 10 |  Points = individual observations",
+    x = NULL, y = "Value"
+    #,
+   # caption  = paste0(
+  #    "Two-sample Welch t-test: t(", round(ttest$parameter, 1), ") = ",
+  #    round(ttest$statistic, 2), ", ", p_label
+  #  )
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position  = "none",
+    plot.title       = element_text(face = "bold"),
+    plot.subtitle    = element_text(size = 9, color = "gray50"),
+    plot.caption     = element_text(size = 9, color = "gray50"),
+    panel.grid.major.x = element_blank()
+  )
+
+```
+
+## Sampling errors and significance differences
+
+We'll assume that the sampling distribution of the difference of means between group 1 and group 2 is 0. Now we just need to know the standard error of the difference of means.
+
+. . .
+
+The formula here will be slightly different depending on the scenario, but we basically just need to combine the variances of both groups:
+
+$$\text{SE}(\bar{y}_1 - \bar{y}_2) = \sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}$$
+
+## Sampling errors and significance differences
+
+$$
+\text{SE}(\bar{y}_1 - \bar{y}_2) = \sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}
+$$ 
+
+. . .
+
+If $s_1^2 = 10$, $n_1=100$ and $s_2^2 = 20$, $n_2 = 100$, then:
+
+$$ 
+\text{SE}(\bar{y}_1 - \bar{y}_2) = \sqrt{\frac{10}{100} + \frac{20}{100}} = 0.55
+$$
+
+. . .
+
+And now we know everything we need to know about the sampling distribution of the difference of means that we would expect if $y_1 = y_2$
+
+## Sampling errors and significance differences
+
+This amounts to asking "how much of the area of the normal distribution is below -1.2 or above +1.2 (the dashed lines) under a normal distribution with a mean of 0 and a standard deviation of 0.55"?
+
+```{r}
+#| fig-align: center
+
+library(ggplot2)
+
+
+# Define parameters
+mean_val <- 0
+sd_val <- 0.55
+# 95% CI is roughly mean +/- 1.96 * sd
+lower_bound <- qnorm(0.025, mean = mean_val, sd = sd_val)
+upper_bound <- qnorm(0.975, mean = mean_val, sd = sd_val)
+
+# Create the plot
+ggplot(data.frame(x = c(mean_val - 4*sd_val, mean_val + 4*sd_val)), aes(x = x)) +
+  # Fill the 95% area
+  #stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val),
+  #              xlim = c(lower_bound, upper_bound),
+  #              geom = "area", fill = "skyblue", alpha = 0.6) +
+  # Draw the full curve
+  stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val)) +
+  labs(title = "Sampling distribution of differences at SE = 0.55",
+       #subtitle = "Shading = area within 1.96 SE of the mean",
+       x = "Difference of means", y = "Density") +
+  theme_minimal() +
+  geom_vline(xintercept = -1.2, lwd =.5, lty=2) +
+  geom_vline(xintercept = 1.2, lwd =.5, lty=2) 
+
+
+```
+
+## Sampling errors and significance differences
+
+Converting the value to a "Z" score allows us to use the standard normal distribution with a mean of 0 and a standard deviation of 1:
+$$Z=\frac{\bar{y}_2 - \bar{y}_1}{SE_{\bar{y}_2 - \bar{y}_1}}$$
+
+$$Z = \frac{1.2}{0.55} = 2.18$$
+
+## Sampling errors and significance differences
+
+We can use `pnorm` to get the area under a standard normal distribution outside of $\pm 2.18$
+
+```{r, echo=TRUE}
+# area below -2.18 SE
+pnorm(-2.18, lower.tail = T)
+
+```
+
+```{r, echo=TRUE}
+# area above 2.18 SE
+pnorm(2.18, lower.tail = F)
+
+```
+```{r, echo=TRUE}
+# area outside of plus or minus 2.18 SE of the mean
+(1-pnorm(2.18, lower.tail = T)) * 2
+
+```
+$\approx .03$ of the area
+
+## Sampling errors and significance differences
+
+About 1.5% of the area is to the left or right of the dashed lines. Which means about a 3% chance of seeing a sample difference at least as large as $\pm 1.2$ if the population difference is 0.
+
+```{r}
+#| fig-align: center
+
+library(ggplot2)
+
+
+# Define parameters
+mean_val <- 0
+sd_val <- 0.55
+# 95% CI is roughly mean +/- 1.96 * sd
+lower_bound <- qnorm(0.01462873, mean = mean_val, sd = sd_val)
+upper_bound <- qnorm(0.9853713, mean = mean_val, sd = sd_val)
+
+# Create the plot
+ggplot(data.frame(x = c(mean_val - 4*sd_val, mean_val + 4*sd_val)), aes(x = x)) +
+  # Fill the 95% area
+  stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val),
+                xlim = c(lower_bound, upper_bound),
+                geom = "area", fill = "red", alpha = 0.6) +
+  # Draw the full curve
+  stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val)) +
+  labs(title = "Sampling distribution of differences at SE = 0.55",
+       subtitle = "Shading = area within 2.18 SE of the mean",
+       x = "Difference of means", y = "Density") +
+  theme_minimal() +
+  geom_vline(xintercept = -1.2, lwd =.5, lty=2) +
+  geom_vline(xintercept = 1.2, lwd =.5, lty=2) 
+
+
+```
+
+## Sampling errors and significance differences
+
+The probability of seeing a difference as large as the one in our sample if the actual difference is zero is a kind of **p.value**.
+
+. . .
+
+In more general terms, p.values reflect the probability of seeing a result at least as extreme as the one in our sample if the null hypothesis is true.
+
+. . .
+
+By convention, $p <.05$ is considered "statistically significant".
+
+## Sampling errors and significance differences
+
+::::: columns
+::: {.column width="50%"}
+-   So what this really means is "4 of the 27 the differences we tested had $p> .05$ (and some of them went in the opposite direction of the one we expected under the "Shy-Trump" hypothesis.)
+:::
+
+::: {.column width="50%"}
+![](images/pew_shytrump.png)
+:::
+:::::
+
+## Sampling errors and significance differences
+
+::::: columns
+::: {.column width="50%"}
+They note in a footnote that they adjusted for multiple comparisons as well.
+
+Thinking about the way "significance" is determined here, you might be able to intuit for why this is needed when you're making 27 comparisons...
+:::
+
+::: {.column width="50%"}
+![](images/multiple_comparisons.png)
+:::
+:::::
+
+## Shy Trump Effect
+
+::::: columns
+::: {.column width="50%"}
+-   Phone respondents had 42% approval for Trump at a sample size of 1,778.
+-   Web respondents had 44% approval for Trump at a sample size of 2,066.
+-   The data are weighted, so the variances should be weighted as well ( $p(1-p)$ is very close, but not exactly the same) But this is calculated elsewhere as:
+    -   $s^2_{\text{phone}} = 0.244$
+    -   $s^2_{\text{web}} = 0.246$
+:::
+
+::: {.column width="50%"}
+![](images/PM.03.30.2017_mode.effects-00-05.webp)
+:::
+:::::
+
+## Shy Trump Effect
+
+$$\bar{y}_{\text{web}} - \bar{y}_{\text{phone}} = 0.02$$
+
+$$s^2_{\text{phone}} = 0.244; n_{\text{phone}} =1,778$$
+
+$$s^2_{\text{web}} =  0.246; n_{\text{web}} =2,066$$
+
+$$SE_{\bar{y}_{\text{web}} - \bar{y}_{\text{phone}}} = \sqrt{\frac{0.244}{1,778} + \frac{0.246}{2,066}} = 0.016 $$
+
+$$\text{This difference is }\frac{0.02}{0.016} = 1.25 \text{ standard errors away from 0}$$
+
+## Shy Trump Effect
+
+$$\text{This difference is }\frac{0.02}{0.016} = 1.25 \text{ standard errors away from 0}$$
+
+. . .
+
+The p.value here is about .2:
+
+```{r}
+#| fig-align: center
+
+library(ggplot2)
+
+
+# Define parameters
+mean_val <- 0
+sd_val <- 0.016
+# 95% CI is roughly mean +/- 1.96 * sd
+lower_bound <- qnorm(0.025, mean = mean_val, sd = sd_val)
+upper_bound <- qnorm(0.975, mean = mean_val, sd = sd_val)
+
+# Create the plot
+ggplot(data.frame(x = c(mean_val - 4*sd_val, mean_val + 4*sd_val)), aes(x = x)) +
+  # Fill the 95% area
+  stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val),
+                xlim = c(lower_bound, upper_bound),
+                geom = "area", fill = "skyblue", alpha = 0.6) +
+  # Draw the full curve
+  stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val)) +
+  labs(title = "Sampling distribution of differences at SE = 0.016",
+       subtitle = "Shading = area within 1.96 SE of the mean",
+       x = "Difference of means", y = "Density") +
+  theme_minimal() +
+  geom_vline(xintercept = -0.02, lwd =.5, lty=2) +
+  geom_vline(xintercept = 0.02, lwd =.5, lty=2) 
+
+
+```
+
+## Sampling errors and significance differences
+
+But what about the weights!?
+
+## Sampling errors and significance differences
+
+The central limit theorem applies to sums, means, variances, proportions... but we're working with a weighted proportion from a stratified sample with additional adjustment for non-response. All that stuff impacts the sampling variance in complex ways.
+
+## Sampling errors and significance differences
+
+::::: columns
+::: {.column width="50%"}
+We can do these calculations ourselves in R, but for now, we can just use the **design effect** to get a rough approximation of the adjustment. The design effect is about 2.99, so...
+:::
+
+::: {.column width="50%"}
+![](images/deff_pew.png)
+:::
+:::::
+
+## Sampling errors and significance differences
+
+Multiplying the variance by the design effect means that there's even more random sampling error expected here.
+
+$$SE_{\bar{y}_{\text{web}} - \bar{y}_{\text{phone}}} = \sqrt{\frac{0.244}{1,778} + \frac{0.246}{2,066}} \times \sqrt{2.99} = 0.028 $$
+
+$$\text{This difference is }\frac{0.02}{0.028} = .71 \text{ standard errors away from 0}$$
+This works out to around a p value of .4, well above the conventional threshold for significance.
+
+## Sampling errors and significance differences
+
+$$\text{This difference is }\frac{0.02}{0.028} = .71 \text{ standard errors away from 0}$$
+
+Expressed as a 95% confidence interval:
+
+$$
+0.02 \pm 0.028\times 1.96 = (-0.53,0.57)
+$$
+Which indicates we're not really confident that the difference is positive, negative, or 0.
+
+
+
+## Sampling errors and significance differences
+
+- This is a "back of the envelope" calculation that loses a lot of precision due to rounding. The goal here is just to demonstrate the concept.
+
+- We'll work on getting more precise estimates using R next week.
+
+
+## Weighted mean and variance
+
+The weighted mean ($\bar{y}_{w}$) is just the sum of each value ($y_i$) times its weight $w_i$ divided by the sum of the weights:
+
+$$\bar{y}_{w} = \frac{\sum_{i=1}^{n} w_i y_i}{\sum_{i=1}^{n} w_i}$$
+
+. . .
+
+Weighted sample variance (not the variance of the sampling distribution!) is just a weighted sum of squared deviations from the mean:
+
+$$
+s^2_w = \frac{\sum_{i=1}^{n} w_i (y_i - \bar{y}_{w})^2}{\sum_{i=1}^{n} w_i}
+$$

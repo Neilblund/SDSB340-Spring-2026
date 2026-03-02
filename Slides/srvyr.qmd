@@ -2,7 +2,7 @@
 title: "Survey data in R"
 format:
     revealjs:
-        theme: [serif]
+        theme: [serif, clean]
         transition: fade
         width: 1280
         height: 720

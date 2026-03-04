@@ -1,0 +1,124 @@
+---
+title: "Homework 5: Survey Data"
+format:
+  html:
+    toc: true
+    df-print: kable
+    code-tools: true
+    embed-resources: true
+    theme: 
+     - united
+    self-contained: true
+editor: visual
+---
+
+```{=html}
+<style>
+.qbox {
+  background-color: #cccccc; 
+  padding: 20px; 
+  border: 1px solid #999999; 
+  border-left: 10px solid teal; 
+  border-radius: 10px;
+  margin: 10px;
+}
+
+</style>
+```
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+```
+
+
+
+
+# Setup
+
+You'll use data from the [2024 round of the General Social Survey](https://gss.norc.org/get-the-data.html) to answer these questions. The survey data has been filtered and recoded for simplicity. 
+
+
+Run the code below to import the data, then use `gss` to answer the questions below. Note that, for questions 1 and 2, you'll use the unweighted data. For questions 3-5, you should use `as_survey_design` to create a survey data set and then use commands from `srvyr` to answer the questions.
+
+```{r}
+library(tidyverse)
+library(gt)
+library(gtsummary)
+library(srvyr)
+library(survey)
+
+gss<-readRDS(url("https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/iss.rds"))
+
+```
+
+
+## Question 1
+
+Calculate the median of `wtssnrps` (the weighting variable) by `age5cat`.
+
+Which group to have the highest weights? What does this tell you about how this sample compares to the population?
+
+```{r}
+# Code here
+
+
+
+```
+
+## Question 2
+
+The variable `frequse` is coded as "Yes" if a respondent uses the internet almost every day, and "No" otherwise. Calculate the proportion of respondents who have ever been victims of an internet scam by `sex`. Which group was most likely to say they had been used the internet nearly every day?
+
+
+```{r}
+# Code here
+
+
+```
+
+
+# Analysis Section
+
+::: {.callout-important}
+
+For questions 3 and 4, you'll want to use the survey weights using `as_survey_design`.
+
+You should use `wtssnrps` as your weighting variable, the `vpsu` variable for the primary sampling units and `vstrat` for the strata IDs.
+
+:::
+
+## Question 3
+
+Recreate the table you made for question 2 **using the weighted survey data**. What differences, if any, do you see after applying the weights?
+
+```{r}
+# Code here
+
+
+```
+
+
+## Question 4
+
+The variable `trppl` asks respondents to say how much they trust other people on a 0 to 10 scale, with zero meaning "low trust" and 10 meaning "high trust". Do daily internet users report higher or lower levels of overall trust in the weighted survey data? Present your results in a formated table.
+
+```{r}
+# Code here
+
+
+
+```
+
+
+## Question 5
+
+Use `svyttest` to conduct a weighted difference of means test on the level of trust among daily internet users compared to people who don't use the internet every day. What is the probability of seeing a difference at least as large as the one in our sample if there is no difference between these groups in the population?
+
+```{r}
+# code here
+
+
+```
+

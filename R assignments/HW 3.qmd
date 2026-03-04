@@ -100,7 +100,7 @@ Recreate the table you made for question 2 **using the weighted survey data**. W
 
 ## Question 4
 
-The variable `trppl` asks respondents to say how much they trust other people on a 0 to 10 scale, with zero meaning "low trust" and 10 meaning "high trust". Do daily internet users report higher or lower levels of overall trust in the weighted survey data? Present your results in a formated table.
+The variable `trppl` asks respondents to say how much they trust other people on a 0 to 10 scale, with zero meaning "low trust" and 10 meaning "high trust". Do daily internet users report higher or lower levels of overall trust in the weighted survey data? Present your results in a formatted table.
 
 ```{r}
 # Code here

@@ -35,8 +35,6 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 
 
-# Setup
-
 You'll use data from the [2024 round of the General Social Survey](https://gss.norc.org/get-the-data.html) to answer these questions. The survey data has been filtered and recoded for simplicity. 
 
 
@@ -79,7 +77,7 @@ The variable `frequse` is coded as "Yes" if a respondent uses the internet almos
 ```
 
 
-# Analysis Section
+# Survey Analysis Section
 
 ::: {.callout-important}
 

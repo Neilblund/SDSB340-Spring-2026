@@ -67,7 +67,7 @@ Which group to have the highest weights? What does this tell you about how this 
 
 ## Question 2
 
-The variable `frequse` is coded as "Yes" if a respondent uses the internet almost every day, and "No" otherwise. Calculate the proportion of respondents who have ever been victims of an internet scam by `sex`. Which group was most likely to say they had been used the internet nearly every day?
+The variable `frequse` is coded as "Yes" if a respondent uses the internet almost every day, and "No" otherwise. Calculate the proportion of respondents who use the internet almost every day by `sex`. Which group was most likely to say they had been used the internet nearly every day?
 
 
 ```{r}

@@ -1,0 +1,68 @@
+---
+title: "Cognitive Interviewing"
+format:
+    revealjs:
+        theme: [blueyellow]
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+        filters:
+          - code-fullscreen
+bibliography: references.bib
+slide-level: 4
+execute:
+  echo: false
+lightbox: true
+---
+
+
+# Conventional vs. Cognitive pretests
+
+- In a traditional pretest, researchers try to emulate the testing environment.
+
+- In a cognitive interview, respondents are actively communicating their thought process as they answer questions, and interviewers can ask clarifying questions of interviewees.
+
+
+# Questions for the surveyor
+
+
+- Are your questions eliciting the answers you want?
+- Can respondents give accurate answers?
+- Are there ways to make the process process easier (without sacrificing data quality?)
+- Are there changes you could make to the question wording, options, or survey flow that would improve your results?
+
+# Your role as the interviewee
+
+- Read each question out loud, look at the response categories, and then "think aloud" as you select one. Restate the question in your own words, talk about what you think of when you formulate your response, and walk through how you choose an answer.
+
+- If you're not comfortable answering the question in a face-to-face setting, you can say this. If possible, try to give other feedback such as how you understand the question and response options.
+
+- Offer constructive feedback, and feel free to note errors in spelling or survey flow where needed.
+
+
+# Your role as the interviewer
+
+Where appropriate, you could "prod" the interviewee to give more detail: 
+
+- "What does [some important term from the question] mean to you?"
+
+- Ask how confident they are in a particular answer.
+
+- Ask "why do you think this?", "how did you arrive at this answer?", or "tell me more about that." 
+
+. . .
+
+Be sure to take notes! Be especially attentive to issues with questions that are part of your novel instrument.
+
+
+

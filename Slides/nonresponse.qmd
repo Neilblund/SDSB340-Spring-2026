@@ -1,0 +1,757 @@
+---
+title: "Non-response"
+format:
+    revealjs:
+        theme: [blueyellow]
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+        smaller: true
+        filters:
+          - code-fullscreen
+bibliography: references.bib
+slide-level: 4
+execute:
+  echo: false
+lightbox: true
+---
+
+
+
+## Non-response
+
+-   [Unit non-response]{.yellow} a respondent is unable/unwilling to answer any of the questions (non-contact, or refusal)
+
+-   [Item non-response]{.yellow} a respondent is unwilling/unable to answer a single question on an otherwise complete survey.
+
+
+
+## Non-response
+
+-   [Response rates]{.yellow} refer to the number (or share) of eligible sample units that cooperate in a survey.
+
+- [Response bias]{.yellow} refers to systematic differences between the respondents and non-respondents with respect to some survey estimate.
+
+-   Non-response can be understood as part of a broader issue of missing data, which also has applications outside of survey research.
+
+## Response rates
+
+Sampling frames typically include at least *some* ineligible units:
+
+-   My telephone survey targets adult citizens but I may have some non-citizen phone numbers in my sampling frame.
+-   My sampling frame has a list of home addresses, but some of the homes are vacant.
+-   My survey of UMD students is sent to .umd email addresses, but some of these students have graduated or withdrawn.
+
+. . .
+
+I may fail to reach these sampled units, but it doesn't actually mean my response rate is lower: the unit was never eligible to begin with.
+
+## Response rates
+
+
+
+$$
+\begin{align}
+\text{Response rate:} & \\
+& \frac{I}{I + R + NC + O  + e(U)} \\
+\end{align}
+$$
+
+$$
+\begin{align}
+\text{Where}: \\
+I &= \text{Complete Interview}\\
+R &= \text{Refusal/Breakoff}\\
+NC &= \text{Noncontact}\\
+O &= \text{Other eligible}\\
+U &=\text{Unknown eligibility}\\
+e &= \text{Share of unknown cases that are eligible}
+\end{align}
+$$
+
+. . .
+
+The key question here arises from how we to estimate $e$.
+
+## Non-response: eligibility of non-responding units
+
+One option when dealing with an unknown is to report a range: $e$ is the only unknown value here and it's bounded between 0 and 1, so what are the lowest and highest response rates possible?
+
+$$
+\begin{align}
+\text{Response rate} &= \frac{I}{I + R + NC + O  + e(U)} \\
+\end{align}
+$$
+
+### Non-response: minimum and maximum allocation
+
+$$
+\begin{align}
+\text{Response rate} &= \frac{I}{I + R + NC + O  + e(U)} \\
+\end{align}
+$$
+
+-   The worst case would be all unknown units are eligible ($e=1$), and the best case would be all unknown units are ineligible ($e=0$)
+
+-   Note that this approach is simple and transparent, but it leaves a lot of uncertainty when U is relatively large.
+
+### Non-response: minimum and maximum allocation
+
+For example, the 2019 LAPOP survey of public opinion in Brazil had 5165 unknown eligible units out of 6,892 targeted.
+
+. . .
+
+Their reported numbers indicate their lowest response rate would be:
+
+$$
+\frac{1532}{1532 + 0 + 100 + 95 + 1(5165)} = .22
+$$
+
+. . .
+
+And their highest:
+
+$$
+\frac{1532}{1532 + 0 + 100 + 95 + 0(5165)} = .89
+$$
+
+. . .
+
+This is such a large range that it probably isn't very helpful as an indicator of survey quality.
+
+### Non-response: proportional allocation
+
+What if we can use data on the "known eligible" respondents to make an inference about the unknown respondents?
+
+. . .
+
+:::::: columns
+:::: {.column width="50%"}
+For instance: sometimes I call a phone and the respondent *tells* me they're a non-citizen and ineligible, so I know the share of eligible respondents in the group who answered the phone.
+
+::: fragment
+If I assume ineligibility is uncorrelated with answering, then $e$ can be inferred from the ineligibility rate among respondents.
+:::
+::::
+
+::: {.column width="50%"}
+![](images/eligibility_flowchart.png)
+:::
+::::::
+
+## Non-response: proportional allocation
+
+For example:
+
+The 2019 LAPOP survey had 551 ineligible respondents out of 2278 who were contacted, so the ineligible share in the "known eligibility group" was 0.76
+
+. . .
+
+Plugging that in to the formula gives us:
+
+$$
+\frac{1532}{1532 + 0 + 100 + 95 + .76(5165)} = .27
+$$
+
+## Non-response: proportional allocation
+
+-   This approach is typically assumed to give a *conservative* estimate of the response rate. ("Conservative" here means that it errs on the side of underestimating the responses rate.)
+
+-   Its also easy to calculate with available data. So you'll often see it used as a sensible default when better measures aren't available.
+
+## Non-response: estimating e
+
+What if the unknown category includes *more* (or fewer) ineligible units than the respondents who were contacted?
+
+. . .
+
+For instance: many surveys will make multiple attempts to contact someone. Some people might respond after one or two attempts, but no number of attempts will ever get someone to answer the door in a vacant home. As a result, the share of ineligible units in the unknown groups is probably larger than the share among the respondents who answered.
+
+## Non-response: estimating e
+
+-   In some cases, researchers may be able to gather auxiliary data on $e$. For instance: they might try to do intensive follow-up on a random sample of unknown addresses.
+
+-   Alternatively, there may be data available from other sources such as the U.S. Census that can be used to estimate the share of eligible respondents in the unknown group.
+
+## Non-response bias
+
+-   Note that non-response doesn't *necessarily* lead to bias: if non-response is completely random, then we can still estimate things even if response rates are very low.
+
+## Non-response bias
+
+-   More formally, the size of the response bias for an estimate of some variable $y$ is:
+
+. . .
+
+$$
+\begin{align}
+\text{Non-response Bias}(\bar{y}) &= \frac{\text{Cov}(y, \rho)}{\bar{\rho}}\\
+\bar{\rho} &= \text{Average propensity to respond} \\
+\text{Cov}(y, \rho) &= \text{Covariance between the variable and response propensity}
+\end{align}
+$$
+
+::: fragment
+Covariance is a measure of joint variability:
+
+$$
+\text{Cov}(y, \rho) = \sum^N_{i=1}\frac{(y_i - \bar{y})(\rho_i-\bar{\rho})}{N-1}
+$$
+:::
+
+## Non-response bias
+
+$$
+\text{Non-response Bias}(\bar{y}) = \frac{Cov(y, \rho)}{\bar{\rho}}
+$$
+
+-   Importantly, this means that the size of the bias is partly dependent on whether the response propensity is related to the thing we're attempting to measure.
+
+-   The value of $\text{Cov}(y, \rho)$ is going to vary across different survey questions. Some questions may be strongly correlated with the propensity to respond, others not so much.
+
+-   Response rates still matter, but only if $\text{Cov}(y, \rho)$ is not zero.
+
+## Non-response bias
+
+In practice, the correlation between non-response rates and bias is lower than you might expect:
+
+::: center
+![](images/groves_nonresponse_meta.png)
+:::
+
+
+## Checking for non-response bias: Campus Climate Surveys
+
+-   Many universities conduct "climate surveys" to measure things like the campus environment and student experiences, as well as to measure the prevalence of things like sexual violence victimization, mental health issues, and bias incidents.
+
+- But response rates are somewhat low, raising questions about whether these surveys can be reliable for generalizations about the campus environment.
+
+## Checking for non-response bias: Campus Climate Surveys
+
+- Some respondents responded to the survey after the first reminder, others responded after some reminders, and others never responded.
+
+- The non-respondents are unobserved, but the "late responders" do have data. If we assume late responders are similar to non-responders, then we can use their results to get a rough idea of the direction and magnitude of bias in the results.
+
+## Checking for non-response bias: Campus Climate Surveys
+
+::: {.center}
+
+![](images/ccc_bias.png)
+
+:::
+
+. . .
+
+This analysis provides some evidence of a (modest) response bias, but the more important question is: what can be done about it?
+
+## Increasing response rates
+
+- Longer survey windows/repeated attempts
+
+- Different modes (in-person rates are typically much higher)
+
+- Mixed modes (mail an invitation and then call)
+
+- Incentives (modest payments or random lotteries end up being cheaper than repeated contact)
+
+. . .
+
+What about after the data has already been collected?
+
+
+## Models of non-response and missing data
+
+Non-response can be thought of us a form of missing data. We'll often use Donald Rubin's (admittedly terrible) terminology to refer to different "kinds" of missingness:
+
+-   [Missing completely at random (MCAR)]{.yellow}: $\rho$ is completely independent of $y$.
+-   [Missing at random (MAR)]{.yellow}: $\rho$ and $y$ are both caused by some third factor (hopefully an observed one)
+-   [Missing not at random (MNAR)]{.yellow}: $y$ itself is the cause of $\rho$.
+
+## Missing data: MCAR
+
+[Missing completely at random (MCAR)]{.yellow}: $\rho$ is completely independent of $y$.
+
+-   For example: some interviewer are better at getting people to sit for a survey than others, but this doesn't necessarily correlate with the *answers* people give to any survey question.
+
+## Missing data: MAR
+
+[Missing at random (MAR)]{.yellow}: $\rho$ and $y$ are both caused by some third factor.
+
+-   For example: party ID might be associated with response propensity, but indirectly through its correlation with age.
+
+-   Notably, this implies that *controlling for age* would allow us to get an unbiased estimate of party ID, provided we measured this on our survey.
+
+## Missing data: MNAR
+
+[Missing not at random (MNAR)]{.yellow}: $y$ itself is the cause of $\rho$
+
+-   For example: people with very low incomes might be more likely to refuse to answer an income question.
+
+-   This would also result in response bias, but, unlike the MAR case, we can't really "control" for this.
+
+## Missing data
+
+-   There's no objective test for whether data are MCAR, MAR, or MNAR, but the assumptions about the missingness model matter for the kinds of methods that might be able to address missing data.
+
+## Missing data: Weighting
+
+Example: My sampling frame has 2000 respondents, and 49.5% (990) are men 50.5% (1010) are women, but about 80% of women responded compared to 70% men, so my actual outcomes look like this:
+
+|       | Sample       | Responded | **Response rate** |
+|-------|--------------|-----------|-------------------|
+| Men   | 990 (49.5%)  | 693 (44%) | .7                |
+| Women | 1010 (50.5%) | 880 (56%) | .8                |
+| Total | 2000         | 1573      |                   |
+
+## Missing data: Weighting
+
+If I assume that *within each gender*, respondents are still a random sample, then I can just weight by the inverse $1/\rho$ of the response rate for each group:
+
+|       | Sample       | Responded | Response rate | Non-response weight |
+|-------|--------------|-----------|---------------|---------------------|
+| Men   | 990 (49.5%)  | 693 (46%) | .7            | 1/.7=1.43                |
+| Women | 1010 (50.5%) | 808 (54%) | .8            | 1/.8=1.25                |
+| Total | 2000         | 1573      |               |                     |
+
+The weighted proportions would then equal the proportions in the sample. (in practice, this would likely be one of several weighting adjustments)
+
+## Missing data: Weighting
+
+-   Note that the weighting approach assumes that gender is part of the sampling frame. This often isn't the case.
+
+-   It also assumes that respondents are still a random sample within each gender. This is the MAR assumption: once we dis-aggregate by gender, there's no more response bias.
+
+## Imputation for item non-response
+
+-   Most of the methods we've been discussing apply to unit non-response
+
+-   The weights that we've discussed before won't address item non-response, but it can be substantial and can introduce bias in the same way that unit non-response does.
+
+-   The default behavior in most stats software is [listwise deletion]{.yellow}, which simply means removing any `NA` values.
+
+## Imputation for item non-response
+
+-   Listwise deletion assumes MCAR. Sometimes this is fine, sometimes it isn't.
+
+-   [imputation]{.yellow} methods work by replacing missing items with an estimated value, they can be less biased than listwise deletion (although, in fairness, they could also be worse)
+
+## Imputation for item non-response
+
+::::: columns
+::: {.column width="50%"}
+-   When encountering missing data, a simple option might be to replace missing values with a mode, mean, or median from the remaining data.
+:::
+
+::: {.column width="50%"}
+```{r}
+
+library(tidyverse)
+library(gt)
+heiss_theme <-
+  theme_minimal(base_family = "Roboto Condensed", base_size = 14) +
+  theme(
+    panel.grid.minor = element_blank(),
+    # Bold, bigger title
+    plot.title = element_text(face = "bold", size = rel(1.7)),
+    # Plain, slightly bigger subtitle that is grey
+    plot.subtitle = element_text(
+      face = "plain",
+      size = rel(1.3),
+      color = "grey70"
+    ),
+    # Italic, smaller, grey caption that is left-aligned
+    plot.caption = element_text(
+      face = "italic",
+      size = rel(0.7),
+      color = "grey70",
+      hjust = 0
+    ),
+    # Bold legend titles
+    legend.title = element_text(face = "bold"),
+    # Bold, slightly larger facet titles that are left-aligned for the sake of repetition
+    strip.text = element_text(
+      face = "bold",
+      size = rel(1.1),
+      hjust = 0
+    ),
+    # Bold axis titles
+    axis.title = element_text(face = "bold"),
+    # Add some space above the x-axis title and make it left-aligned
+    axis.title.x = element_text(margin = margin(t = 10), hjust = 0),
+    # Add some space to the right of the y-axis title and make it top-aligned
+    axis.title.y = element_text(margin = margin(r = 10), hjust = 1)
+  )
+
+theme_set(heiss_theme)
+fname<-here::here("data", "anes_timeseries_2024_stata_20250808.zip")
+
+# unz will extract the .dta file from the zipped folder 
+anes  <- haven::read_dta(unz(fname,
+                             "anes_timeseries_2024_stata_20250808.dta"))|>
+  select(V241566x,V241551, V241465x, V241501x, V240108a)|>
+  as_factor()
+
+
+
+set.seed(555)
+
+
+nonmissing<-anes|>
+  mutate(V241566x = na_if(V241566x, "-9. Refused")|>na_if("-5. Break off, sufficient partial"))|>
+  filter(!is.na(V241566x))|>
+  slice_sample(n=20)|>
+  slice_tail(n=10)|>
+  select(V241566x,V241551, V241465x, V241501x)
+
+
+missing<-anes|>
+  mutate(V241566x = na_if(V241566x, "-9. Refused")|>na_if("-5. Break off, sufficient partial"))|>
+  filter(is.na(V241566x))|>
+  slice_sample(n=20)|>
+  slice_tail(n=5)|>
+  select(V241566x,V241551, V241465x, V241501x)
+  
+
+vals<-bind_rows(nonmissing, missing)|>
+  arrange(V241551, V241465x, V241501x )|>
+  select(`HH. Income` = V241566x,Sex=V241551, Education = V241465x)|>
+  relocate(`HH. Income`, .after=everything())|>
+  gt()|>
+  cols_align(columns=everything(), 
+             
+             align ="left")|>
+  data_color(
+    columns = `HH. Income`,
+    color = 'white',
+    # Define the range for the color scale,
+    na_color = "gray" 
+  )
+
+unsorted_vals<-bind_rows(nonmissing, missing)|>
+  select(`HH. Income` = V241566x,Sex=V241551, Education = V241465x)|>
+  relocate(`HH. Income`, .after=everything())|>
+  gt()|>
+  cols_align(columns=everything(), 
+             
+             align ="left")|>
+  data_color(
+    columns = `HH. Income`,
+    color = 'white',
+    # Define the range for the color scale,
+    na_color = "gray" 
+  )
+
+
+
+
+
+
+income_plot<-anes|>
+  mutate(V241566x = fct_collapse(V241566x , "Non-response" = c("-5. Break off, sufficient partial", "-9. Refused")))|>
+  count(V241566x, wt = V240108a)|>
+  filter(n > 0)|>
+ggplot(aes(x=V241566x, y=n)) + geom_bar(stat='identity') + coord_flip() +
+  labs(caption = "2024 ANES",
+       y = "Number of responses"
+       )
+
+
+```
+
+```{r}
+#| fig-height: 6
+#| fig-width: 6
+
+income_plot
+```
+:::
+:::::
+
+## Imputation for item non-response
+
+::::: columns
+::: {.column width="50%"}
+-   This has the problem of distorting the distribution and artificially shrinking the variance of the imputed variable. 
+-   It also doesn't necessarily offer much advantage over listwise deletion: if we have non-response bias, the mean of the observed data is still biased!
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| fig-height: 6
+#| fig-width: 6
+
+imputed_plot<-anes|>
+  
+  
+  mutate(V241566x = fct_collapse(V241566x , "21. $80,000-89,999" = c("-5. Break off, sufficient partial", "-9. Refused")),
+         V241566x = fct_reorder(V241566x, as.numeric(substr(paste(V241566x), 1, 2)))
+         )|>
+  count(V241566x, wt = V240108a)|>
+  mutate(imputed = ifelse(V241566x !="21. $80,000-89,999", "Not imputed", "Imputed"))|>
+  filter(n > 0)|>
+  arrange(V241566x)|>
+  ggplot(aes(x=V241566x, y=n, fill=imputed)) + geom_bar(stat='identity') + coord_flip() +
+  labs(caption = "2024 ANES",
+       y = "Number of responses"
+  )+
+  theme(legend.position = "none") +
+  scale_fill_manual(values=c( "red", "grey"))
+
+imputed_plot
+
+```
+:::
+:::::
+
+## Imputation for item non-response
+
+
+One defining feature of item non-response is that we often have pretty good data on other characteristics of the respondent who refused to answer a question:
+
+
+. . .
+
+
+```{r}
+unsorted_vals|>  tab_options(
+    table.font.size = px(11), # or "pt(8)"
+    heading.title.font.size = px(12)
+  )
+```
+
+It might make sense to use the known data to make some inferences about the missing parts.
+
+## Imputation for item non-response: hot-deck method
+
+One of the oldest methods of using known data is known as "hot-deck" imputation. The process proceeds as follows:
+
+1.  Sort all cases by some known variables assumed to be correlated with the variable you want to impute.
+2.  Iterate through each row.
+    1.  If the imputed variable is present, store it as the "hot-deck" value.
+    2.  If the imputed variable is missing, replace it with the current "hot-deck" value.
+    
+. . .
+
+(if the very first item is missing, this can be replaced with something like the mean or median for the variable)    
+
+
+## Imputation for item non-response: hot-deck method
+
+For example, we could sort this data by sex and education:
+
+```{r}
+vals|> tab_options(
+    table.font.size = px(11), # or "pt(8)"
+    heading.title.font.size = px(12)
+  )
+```
+
+
+## Imputation for item non-response: hot-deck method
+
+Then calculate the hot deck and fill missing values with the hot deck value:
+
+```{r}
+vals<-bind_rows(nonmissing, missing)|>
+  arrange(V241551, V241465x, V241501x )|>
+  select(`HH. Income` = V241566x,Sex=V241551, Education = V241465x)|>
+  relocate(`HH. Income`, .after=everything())
+
+
+hot<-rep(NA, nrow(vals))
+imputed_value<-rep(NA, nrow(vals))
+
+for( i in 1:nrow(vals)){
+  if(i == 1){
+    hot<-"21. $80,000-89,999"
+
+  }
+  imputed_value[i] <- hot
+  
+  if(!is.na(vals$`HH. Income`[i])){
+    hot<-paste(vals$`HH. Income`[i])
+  }
+  
+}
+
+vals$`Hot value`<-imputed_value
+vals|>
+  gt()|>
+  cols_align(columns=everything(), 
+             
+             align ="left")|>
+  data_color(
+    columns = `HH. Income`,
+    color = 'white',
+    # Define the range for the color scale,
+    na_color = "gray" 
+  )|> tab_options(
+    table.font.size = px(11), # or "pt(8)"
+    heading.title.font.size = px(12)
+  )
+
+```
+
+## Imputation for item non-response: hot-deck method
+
+
+::::: {.columns}
+::: {.column width="50%"}
+- Note that, in general, the hot deck value comes from a "donor" case that is similar to the known characteristics of the recipient.
+
+- This makes sense if we assume that someone's gender and education will be a good predictor of their income.
+
+:::
+::: {.column width="50%"}
+```{r}
+vals<-bind_rows(nonmissing, missing)|>
+  arrange(V241551, V241465x, V241501x )|>
+  select(`HH. Income` = V241566x,Sex=V241551, Education = V241465x)|>
+  relocate(`HH. Income`, .after=everything())
+
+
+hot<-rep(NA, nrow(vals))
+imputed_value<-rep(NA, nrow(vals))
+
+for( i in 1:nrow(vals)){
+  if(i == 1){
+    hot<-"21. $80,000-89,999"
+
+  }
+  imputed_value[i] <- hot
+  
+  if(!is.na(vals$`HH. Income`[i])){
+    hot<-paste(vals$`HH. Income`[i])
+  }
+  
+}
+
+vals$`Hot value`<-imputed_value
+vals|>
+  gt()|>
+  cols_align(columns=everything(), 
+             
+             align ="left")|>
+  data_color(
+    columns = `HH. Income`,
+    color = 'white',
+    # Define the range for the color scale,
+    na_color = "gray" 
+  )|> tab_options(
+    table.font.size = px(11), # or "pt(8)"
+    heading.title.font.size = px(12)
+  )
+
+```
+
+:::
+:::::
+
+
+## Imputation for item non-response: hot-deck method
+
+
+Unlike mean-imputation, it also preserves the original distribution of the response variables.
+
+
+## Imputation for item non-response: hot-deck method
+
+
+::::: {.columns}
+::: {.column width="50%"}
+
+```{r}
+#| fig-height: 6
+#| fig-width: 6
+
+anes|>
+  mutate(V241566x = na_if(V241566x, "-9. Refused")|>na_if("-5. Break off, sufficient partial"))|>
+  select(`HH. Income` = V241566x,Sex=V241551, Education = V241465x, weight =V240108a)|>
+  filter(!str_detect(`Sex`, "^\\-"), !str_detect(`Education`, "^\\-"))|>
+  arrange(Education, Sex)|>
+  count(`HH. Income`, wt = weight)|>
+  filter(n>0)|>
+  drop_na()|>
+  ggplot(aes(x=`HH. Income`, y=n)) + geom_bar(stat='identity') + coord_flip() +
+  labs(caption = "2024 ANES",
+       y = "Number of responses",
+       title = "Original data"
+  )+
+  theme(legend.position = "none")
+
+```
+
+:::
+::: {.column width="50%"}
+
+```{r}
+#| fig-height: 6
+#| fig-width: 6
+anes|>
+  mutate(V241566x = na_if(V241566x, "-9. Refused")|>na_if("-5. Break off, sufficient partial"))|>
+  select(`HH. Income` = V241566x,Sex=V241551, Education = V241465x, weight =V240108a)|>
+  filter(!str_detect(`Sex`, "^\\-"), !str_detect(`Education`, "^\\-"))|>
+  arrange(Education, Sex)|>
+  fill(`HH. Income`, .direction='down')|>
+  count(`HH. Income`, wt = weight)|>
+  filter(n>0)|>
+  ggplot(aes(x=`HH. Income`, y=n)) + geom_bar(stat='identity') + coord_flip() +
+  labs(caption = "2024 ANES",
+       y = "Number of responses",
+       title = "Hot deck imputation"
+  )+
+  theme(legend.position = "none")
+
+```
+
+:::
+:::::
+
+
+
+## Imputation for item non-response: hot-deck method
+
+- Methods like hot-deck imputation only work if the other characteristics are good predictors of the missing data. i.e. if the recipient case would have looked like the donor case if they had responded to the question.
+
+- This also applies to more sophisticated methods that use machine learning or statistical modeling approaches to infer missing items: they require the MAR assumption and they require researchers to identify good predictors.
+
+
+## Imputation for lots of items
+
+- The previous example was based on imputing a handful of cases for a single variable, but many surveys have multiple questions with extensive missing data.
+
+## MICE
+
+Multiple Imputation Through Chained Equations
+
+1.  Replace all missing data with a placeholder (like the column mean)
+
+2.  Reset one column (call it X) to its observed values
+
+3.  Use a model to impute X
+
+4.  Replace X with the predicted values from step 3, then move on to the next column.
+
+5.  Repeat until the estimates stabilize.
+
+6.  Do all of these steps multiple times to create multiple versions of the data
+
+
+## MICE
+
+![](images/mice_vis.png)
+
+
+
+

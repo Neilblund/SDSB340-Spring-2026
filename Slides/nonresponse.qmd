@@ -1120,7 +1120,8 @@ digraph Confounder {
 
 ## Multiple imputation: Example
 
-Rcode:
+[Link to Rcode](https://raw.githubusercontent.com/Neilblund/SDSB340-Spring-2026/refs/heads/master/Rcode/mice_example.R)
+
 
 
 

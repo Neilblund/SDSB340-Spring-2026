@@ -386,3 +386,5 @@ Basic process:
 -   MRP requires building a model for every survey question, and it requires joint (not marginal) distributions for the values in the target population.
 
 -   We don't have good data on some of the most important predictors, so MRP mostly relies on demographic data.
+
+# References

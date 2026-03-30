@@ -26,7 +26,111 @@ execute:
 lightbox: true
 ---
 
+```{r, echo=FALSE}
+library(tidyverse)
+library(gt)
+# this string is just a link to a web page that holds the data: 
+loc <- url('https://github.com/Neilblund/GVPT201-Spring-2026/raw/refs/heads/master/Data/survey_data.rds')
 
+# read RDS reads the data from the URL into R:
+gvpt_survey<-readRDS(loc)
+
+na_count<-gvpt_survey|>
+  select(starts_with("ft_"))|>
+  apply(X=_, MARGIN=1, FUN=function(x) sum(is.na(x)))
+
+survey<-gvpt_survey[which(na_count<10),]
+set.seed(1000)
+
+names <- c(
+  "ft_badbunny" = "Bad Bunny",
+  "ft_business" = "Big business" ,
+  "ft_congress"  = "Congress",
+  "ft_ice"  = "ICE",
+  "ft_immigrants"  = "Immigrants",
+  "ft_natguard"  = "The National Guard",
+  "ft_noem"  = "Kristi Noem",
+  "ft_police"  = "Police",
+  "ft_scotus" = "The U.S. Supreme Court",
+  "ft_trump" = "Donald Trump",
+  "ft_unions" = "Labor Unions",
+  "ft_vance" = "J.D. Vance"
+)
+
+ftlong<-survey|>
+  select(starts_with("ft_"))|>
+  mutate(id =seq(n()))|>
+  pivot_longer(-id)|>
+  mutate(missing=factor(is.na(value), levels=c(FALSE, TRUE), labels=c("No", "Yes")),
+         label = unname(names[name])
+         )
+
+set.seed(100)
+missing_plot<-ftlong|>
+  ungroup()|>
+  filter(id %in% sample(nrow(survey), size=100))|>
+  group_by(id)|>
+  mutate(rowid = cur_group_id())|>
+  ungroup()|>
+ggplot(aes(x=label, y=rowid, fill=missing)) + geom_tile(color='black') +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1.1, hjust=1),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+        ) +
+  scale_fill_manual(values=c("lightblue", "yellow"))
+
+
+library(glue)
+ft_summary<-ftlong|>
+  group_by(label)|>
+  summarise(mean = round(mean(value, na.rm=T), digits=1),
+            `N valid` = sum(!is.na(value)),
+            missing = sum(is.na(value)),
+            missing_pct = round( (missing/(missing + `N valid`)) * 100, digits=1),
+            `N missing` = glue(" {missing} \n({missing_pct}%)")
+  )|>
+  arrange(-missing)|>
+  select(-missing_pct, -missing)|>
+  gt()|>
+  cols_align(
+    align = 'right',
+    columns = everything()
+  )
+
+
+na_count<-gvpt_survey|>
+  select(starts_with("ft_"))|>
+  apply(X=_, MARGIN=1, FUN=function(x) sum(is.na(x)))
+
+survey<-gvpt_survey[which(na_count<10),]
+survey_select<-survey|>
+  select(pid_summary, left_right_scale, sex_gender, age,
+        starts_with('ft_'), pol_news)
+
+pool_meanci<-function(.data, ...){
+  vars<-rlang::quos(...)
+  names_vector <- purrr::map_chr(vars, rlang::as_name)
+  pooled_estimates<-vars|>
+    purrr::map(
+      ~with(.data, lm(rlang::new_formula(rlang::f_rhs(.x), 1)))|>
+        mice::pool()|>
+        summary(conf.int = TRUE)
+    )|>
+    dplyr::bind_rows()|>
+    dplyr::select(-term, -statistic,-df, -p.value)
+  unpooled<-.data$data|>
+    dplyr::select(...) |>
+    purrr::map_dbl(~mean(.x, na.rm=T))|>
+    unname()
+  estimates<-bind_cols(variable = names_vector, 
+                       unpooled = unpooled, 
+                       pooled_estimates)
+  return(estimates)
+  
+}
+
+```
 
 ## Non-response
 
@@ -293,7 +397,7 @@ Non-response can be thought of us a form of missing data. We'll often use Donald
 
 ## Missing data: MNAR
 
-[Missing not at random (MNAR)]{.yellow}: $y$ itself is the cause of $\rho$
+[Missing not at random (MNAR)]{.yellow}: $y$ itself is the cause of $\rho$ (or $y$ is correlated with $\rho$ through some unobserved confounder)
 
 -   For example: people with very low incomes might be more likely to refuse to answer an income question.
 
@@ -739,7 +843,7 @@ Multiple Imputation Through Chained Equations
 
 2.  Reset one column (call it X) to its observed values
 
-3.  Use a model to impute X
+3.  Use a model to impute X.
 
 4.  Replace X with the predicted values from step 3, then move on to the next column.
 
@@ -751,6 +855,298 @@ Multiple Imputation Through Chained Equations
 ## MICE
 
 ![](images/mice_vis.png)
+
+## MICE
+
+- The imputation process is repeated multiple times to create alternate versions of the completed data set. These are analyzed as if they were complete data sets.
+
+- Using multiple different versions allows researchers to get an estimate of the extra variance associated with the imputation process.
+
+## Imputing some survey responses
+
+- Data: 996 responses to a survey circulated to a convenience sample of mostly UMD students.
+
+- Responses with over 50% completion were retained.
+
+- Note that "unit non-response" isn't really measurable here because the population is already ill-defined. So we're only dealing with item non-response.
+
+## Imputing some survey data
+
+::::: {.columns}
+::: {.column width="50%"}
+- Many respondents skipped or gave "don't know" responses to some questions.
+
+:::
+::: {.column width="50%"}
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+missing_plot +
+  labs(title = "Missingness for 100 randomly selected cases",
+       x = "Feeling thermometers",
+       y= "Case Number"
+       ) +
+  heiss_theme +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1.1, hjust=1),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+        )
+
+```
+:::
+:::::
+
+
+## Multiple imputation: Example
+
+
+::::: {.columns}
+::: {.column width="50%"}
+
+The amount of non-response is negligible for some items, but substantial for others. The item with the most non-response is the feeling thermometer score for Kristi Noem.
+
+:::
+::: {.column width="50%"}
+```{r}
+ft_summary
+
+
+```
+:::
+:::::
+
+
+
+
+## Multiple imputation: Example
+
+
+::::: {.columns}
+::: {.column width="50%"}
+
+People who skipped the Noem question are less likely to pay attention to political news.
+
+:::
+::: {.column width="50%"}
+```{r}
+
+library(gtsummary)
+
+
+survey_select|>
+  select(-left_right_scale)|>
+  mutate(pid3 = fct_collapse(pid_summary, 
+                             "Democrat" = c("Strong Democrat", "Not strong Democrat", "Independent Democrat"),
+                             "Independent" = c("Independent"),
+                             "Republican" = c("Independent Republican", "Not strong Republican", "Strong Republican")
+                             ))|>
+  select(-pid_summary)|>
+  mutate(missing_ft=factor(is.na(ft_noem), levels=c(FALSE, TRUE), labels=c("Not missing", "Missing")))|>
+  select(-ft_noem)|>
+  tbl_summary(by = missing_ft,
+              include = pol_news,
+              statistic = all_continuous() ~ "{mean} ({sd})"
+              )|>
+  add_p()
+```
+:::
+:::::
+
+
+## Multiple imputation: Example
+
+
+::::: {.columns}
+::: {.column width="50%"}
+They're also more likely to be Republicans, and more conservative/centrist ideologically:
+
+:::
+::: {.column width="50%"}
+```{r}
+
+library(gtsummary)
+
+
+survey_select|>
+  mutate(pid3 = fct_collapse(pid_summary, 
+                             "Democrat" = c("Strong Democrat", "Not strong Democrat", "Independent Democrat"),
+                             "Independent" = c("Independent"),
+                             "Republican" = c("Independent Republican", "Not strong Republican", "Strong Republican")
+                             ))|>
+  select(-pid_summary)|>
+  mutate(missing_ft=factor(is.na(ft_noem), levels=c(FALSE, TRUE), labels=c("Not missing", "Missing")))|>
+  select(-ft_noem)|>
+  tbl_summary(by = missing_ft,
+              include = c(pid3, left_right_scale) ,
+              statistic = all_continuous() ~ "{mean} ({sd})"
+              )
+```
+:::
+:::::
+
+## Multiple imputation: Example
+
+They're also younger and differ on several other feeling thermometer type questions:
+
+```{r}
+
+library(gtsummary)
+library(labelled)
+
+newlabs<-lapply(survey_select, function(x){
+  str_replace_all(attr(x, "label"), "How do you feel about the following groups or individuals\\? - ", "Feeling thermometer: ")
+})
+  
+var_label(survey_select) <- newlabs
+survey_select|>
+  mutate(pid3 = fct_collapse(pid_summary, 
+                             "Democrat" = c("Strong Democrat", "Not strong Democrat", "Independent Democrat"),
+                             "Independent" = c("Independent"),
+                             "Republican" = c("Independent Republican", "Not strong Republican", "Strong Republican")
+                             ))|>
+  select(-pid_summary)|>
+  mutate(missing_ft=factor(is.na(ft_noem), levels=c(FALSE, TRUE), labels=c("Not missing", "Missing")))|>
+  select(-ft_noem)|>
+  tbl_summary(by = missing_ft,
+              include = c(age, starts_with("ft_")) ,
+              statistic = all_continuous() ~ "{mean} ({sd})",
+              missing='no'
+              )|>
+  add_p()
+```
+
+## Multiple imputation: Example
+
+- The results suggest that MCAR is probably not a plausible assumption, at least for the Kristi Noem question: non-respondents are different from respondents on a range of variables that we might expect to be correlated with feelings towards Kristi Noem.
+
+## Multiple imputation: Example
+
+What's the worst case for a biased estimate?
+
+. . .
+
+Since the feeling thermometer scores are bounded between 0 and 100, we can get a sort of "worst-case scenario" estimate for the potential bias in our estimate of some missing variable $x$:
+
+
+$$
+\begin{align}
+\bar{x}_{\text{complete}} &= (n_1 \times \bar{x}_1 + n_2 \times \bar{x_2} ) / (n_1 + n_2) \\ 
+\bar{x}_1 &= \text{Average for non-missing data}\\
+\bar{x}_2 &= \text{Average for missing data} \\
+n_1 &= \text{Number of non-missing values} \\
+n_2 &= \text{Number of missing values}
+\end{align}
+$$
+
+
+## Multiple imputation: Example
+
+
+$$
+\begin{align}
+\bar{x}_{\text{complete}} = (821 \times 13.15 + 166 \times 100) / 987 = 27.76 
+\end{align}
+$$
+$$
+\begin{align}
+\bar{x}_{\text{complete}} = (821 \times 13.15 + 166 \times 0) / 987 = 10.94 
+\end{align}
+$$
+
+. . .
+
+Sometimes, this range might be negligible, in which case we could safely ignore it. Alternatively, we might think of more plausible values for the missing responses. For example: what if they all had the mean value for Republican respondents?
+
+. . .
+
+$$
+\begin{align}
+\bar{x}_{\text{complete}} = (821 \times 13.15 + 166 \times 46.7) / 987 = 18.79
+\end{align}
+$$
+
+
+## Multiple imputation: Example
+
+There's probably *enough* missing data here to give us pause, and there's evidence that the missingness is at least partly systematic. So we have a good candidate for imputation.
+
+. . .
+
+What variables should we use to impute missing data?
+
+(We'll focus on the Noem feeling thermometer for now, but keep in mind that we'll actually impute data for all of the missing items)
+
+## Multiple imputation: Example
+
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- The most important variables should be the ones that we think are correlated with both non-response and the variable with missing data.
+- Of course, I can't measure this outcome for the non-respondents, but I can make some educated guesses based on the pattern among observed respondents.
+- In order to be useful for imputation, it also needs to be something that we observed for people who skipped the variable we're trying to impute.
+
+:::
+::: {.column width="50%"}
+```{dot}
+#| fig-width: 6
+#| fig-height: 6
+digraph Confounder {
+    rankdir=TD;
+    U [label="???"];
+    X [label="Non-response"];
+    Y [label="Y"];
+    
+    U -> X;
+    U -> Y;
+   
+    {
+        rank=same;
+        Y;
+        X;
+    }
+}
+
+```
+:::
+:::::
+
+
+## Multiple imputation: Example
+
+- I'll include feeling thermometers toward ICE, J.D. Vance, Donald Trump, immigrants, police, and the national guard.
+
+- I'll also include political engagement, age, and party ID.
+
+## Multiple imputation: Example
+
+Rcode:
+
+
+
+## Multiple imputation 
+
+
+::::: {.columns}
+::: {.column width="50%"}
+- Pew research used MICE to create a "synthetic population", which they then used to conduct an analysis of weighting non-representative polls.
+
+- "Missingness", in this example, comes from the fact that some questions weren't asked at all on the ACS.
+:::
+::: {.column width="50%"}
+![](images/pew_mice.webp)
+[Source: Pew Research](https://www.pewresearch.org/methods/2018/01/26/how-different-weighting-methods-work/)
+:::
+:::::
+
+
+## Multiple imputation: pros and cons
+
+- Imputation can give less biased estimates than listwise deletion, provided the data are MAR and the predictive model is correct.
+
+- But it could also make things worse.
+
+- Many researchers are uncomfortable with using "made up" data, but note that listwise deletion also involves a strong assumption about the reason data are missing.
 
 
 

@@ -1,0 +1,411 @@
+---
+title: "Calibration"
+format:
+    revealjs:
+        theme: [blueyellow]
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+        smaller: true
+        filters:
+          - code-fullscreen
+bibliography: references.bib
+slide-level: 4
+execute:
+  echo: false
+lightbox: true
+---
+
+```{r}
+
+library(tidyverse)
+library(gt)
+```
+
+## Reviewing weights
+
+Imagine you're conducting a survey of the DMV area, but you want to be able to make inferences about individual states and talk about the majority view among DMV residents, so you take an equal sized sample from each state.
+
+```{r}
+table_data<-read_tsv("State	Pop Size	Sample size
+DC	693,645	1000
+Maryland	6,265,347	1000
+Virginia	8,880,107	1000
+Total	15,839,099	3,000
+")
+
+gt(table_data)|>
+  fmt_number(decimals = 0)
+
+```
+
+How should you re-weight this if the goal is to analyze the overall views of people in the DMV area?
+
+## Reviewing weights
+
+Dividing the population size by the sample size will give you weights that equal the inverse probability of selection:
+
+```{r}
+table_data<-read_tsv("State	Pop Size	Sample Size	Weight 1
+DC	693,645	1000	693.645
+Maryland	6,265,347	1000	6265.347
+Virginia	8,880,107	1000	8880.107
+Total	15,839,099	3,000	15839.099
+
+")
+
+table_data|>
+  gt()|>
+  fmt_number(
+    columns=`Pop Size`:`Sample Size`,
+    decimals = 0)
+
+
+```
+
+. . .
+
+Note that applying these weights to each person would give you a total sum of 15,839,099
+
+## Reviewing weights
+
+More often, weights will be normalized so they sum to the total number of observations in the sample. The exact values here are less important than the *ratios* between the weights for each group.
+
+```{r}
+table_data<-read_tsv("State	Pop Size	Sample Size	Weight 1
+DC	693,645	1000	693.645
+Maryland	6,265,347	1000	6265.347
+Virginia	8,880,107	1000	8880.107
+Total	15,839,099	3,000	15839.099
+
+")
+
+table_data|>
+  mutate(`Weight 1` =  (`Weight 1`/15839099) * 3000)|>
+  gt()|>
+  fmt_number(
+    columns=`Pop Size`:`Sample Size`,
+    decimals = 0)|>
+  fmt_number(columns=starts_with("Weight"),
+             decimals=2
+             )
+
+```
+
+. . .
+
+Note that summing these weights for each respondent would now give you a total of 3,000.
+
+## Reviewing weights
+
+## Reviewing weights
+
+More often, weights will be normalized so they sum to the total number of observations in the sample. The exact values here are less important than the *ratios* between the weights for each group.
+
+```{r}
+table_data<-read_tsv("State	Pop Size	Sample Size	Weight 1
+DC	693,645	1000	693.645
+Maryland	6,265,347	1000	6265.347
+Virginia	8,880,107	1000	8880.107
+Total	15,839,099	3,000	15839.099
+
+")
+
+table_data|>
+  mutate(`Weight 1` =  (`Weight 1`/15839099) * 3000)|>
+  gt()|>
+  fmt_number(
+    columns=`Pop Size`:`Sample Size`,
+    decimals = 0)|>
+  fmt_number(columns=starts_with("Weight"),
+             decimals=2
+             )
+
+```
+
+. . .
+
+Note that summing these weights for each respondent would now give you a total of 3,000.
+
+## Reviewing weights
+
+Note that response rates here might differ, meaning that our resulting survey no longer resembles the population. 
+
+```{r}
+
+statefactor<-c("DC", "Maryland", "Virginia", "DMV")
+
+table_data<-read_tsv("State	Group	Pop Size	Sample Size	Repondents	Response Rate	Weight 1
+DC	Total	693,645	1000	888	0.888	0.131379632
+DC	Hispanic	83,237	120	96	0.8	
+DC	Non-hispanic	610,408	880	792	0.9	
+Maryland	Total	6,265,347	1000	887	0.887	1.18668625
+Maryland	Hispanic	814,495	130	104	0.8	
+Maryland	Non-hispanic	5,450,852	870	783	0.9	
+Virginia	Total	8,880,107	1000	889	0.889	1.681934118
+Virginia	Hispanic	976,812	110	88	0.8	
+Virginia	Non-hispanic	7,903,295	890	801	0.9	
+DMV	Total	15,839,099	3,000	2,664	0.888	3
+
+")|>
+  mutate(State = factor(State, levels=statefactor))
+
+
+
+table_data|>
+gt(rowname_col = "Group", groupname_col = "State")|>
+    fmt_number(
+    columns=c(`Pop Size`:`Sample Size`),
+    decimals = 0)|>
+  fmt_number(columns=starts_with("Weight"),
+             decimals=2
+             )|>
+    sub_missing(
+    columns = everything(),
+    missing_text = "-"
+  )|>
+  tab_stub_indent(
+    rows = everything(),
+    indent = 2
+  )
+  
+
+```
+
+## Reviewing weights
+
+
+We can weight for non-response by taking $1/\rho_i$ where $\rho_i$ is the response rate for group i.
+
+```{r}
+
+statefactor<-c("DC", "Maryland", "Virginia", "DMV")
+
+table_data<-read_tsv("State	Group	Pop Size	Sample Size	Repondents	Response Rate	Weight 1
+DC	Total	693,645	1000	888	0.888	0.131379632
+DC	Hispanic	83,237	120	96	0.8	
+DC	Non-hispanic	610,408	880	792	0.9	
+Maryland	Total	6,265,347	1000	887	0.887	1.18668625
+Maryland	Hispanic	814,495	130	104	0.8	
+Maryland	Non-hispanic	5,450,852	870	783	0.9	
+Virginia	Total	8,880,107	1000	889	0.889	1.681934118
+Virginia	Hispanic	976,812	110	88	0.8	
+Virginia	Non-hispanic	7,903,295	890	801	0.9	
+DMV	Total	15,839,099	3,000	2,664	0.888	3
+
+")|>
+  mutate(State = factor(State, levels=statefactor),
+         `Weight 2` = 1/`Response Rate`
+         )
+
+
+
+table_data|>
+gt(rowname_col = "Group", groupname_col = "State")|>
+    fmt_number(
+    columns=c(`Pop Size`:`Sample Size`),
+    decimals = 0)|>
+  fmt_number(columns=starts_with("Weight"),
+             decimals=2
+             )|>
+    sub_missing(
+    columns = everything(),
+    missing_text = "-"
+  )|>
+  tab_stub_indent(
+    rows = everything(),
+    indent = 2
+  )
+  
+
+```
+
+## Reviewing weights
+
+
+Multiple weights can be combined multiplicatively:
+
+```{r}
+
+statefactor<-c("DC", "Maryland", "Virginia", "DMV")
+
+table_data<-read_tsv("State	Group	Pop Size	Sample Size	Repondents	Response Rate	Weight 1
+DC	Total	693,645	1000	888	0.888	0.131379632
+DC	Hispanic	83,237	120	96	0.8	
+DC	Non-hispanic	610,408	880	792	0.9	
+Maryland	Total	6,265,347	1000	887	0.887	1.18668625
+Maryland	Hispanic	814,495	130	104	0.8	
+Maryland	Non-hispanic	5,450,852	870	783	0.9	
+Virginia	Total	8,880,107	1000	889	0.889	1.681934118
+Virginia	Hispanic	976,812	110	88	0.8	
+Virginia	Non-hispanic	7,903,295	890	801	0.9	
+DMV	Total	15,839,099	3,000	2,664	0.888	3
+
+")|>
+  mutate(State = factor(State, levels=statefactor),
+         `Weight 2` = 1/`Response Rate`,
+         )|>
+  group_by(State)|>
+  mutate(`Weight Total` = 
+           if_else(Group == "Total", NA,max(`Weight 2`, na.rm=T) * max(`Weight 1`, na.rm=T)))|>
+  ungroup()
+
+
+
+table_data|>
+gt(rowname_col = "Group", groupname_col = "State")|>
+    fmt_number(
+    columns=c(`Pop Size`:`Sample Size`),
+    decimals = 0)|>
+  fmt_number(columns=starts_with("Weight"),
+             decimals=2
+             )|>
+    sub_missing(
+    columns = everything(),
+    missing_text = "-"
+  )|>
+  tab_stub_indent(
+    rows = everything(),
+    indent = 2
+  )
+  
+
+```
+
+## Additional adjustments
+
+What happens if you *still* see a discrepancy between the sample and the population even after you've adjusted for different probabilities of selection and non-response? 
+
+
+Possible reasons:
+
+-   Random sampling error
+-   Coverage error
+-   Non-response not fully accounted for by non-response adjustment
+
+
+## Calibration
+
+Calibrations are additional adjustments made to a survey after collection usually to force a sample to resemble a "benchmark" population total.
+
+. . .
+
+The basic adjustment is simple: if women are 51% of the target population but 50% of our sample, then we would give them a weight of $.51/.50 = 1.02$ (and men would get a weight of $.98$)
+
+. . .
+
+Then we would multiply these with our other weights to get a final calibrated weight.
+
+## Sources of auxiliary information
+
+-  Those benchmarks need to be reliable estimates of the population values. The Census and American Community Survey (ACS) are two widely used sources.
+
+
+## Calibration for multiple variables
+
+What if we wanted to adjust for gender, ethnicity, education, age, and urban/rural residence?
+
+. . .
+
+This poses some potential problems: 
+
+- Even if we make everything dichotomous, that would give us $2^5 = 36$ combinations. There's a good chance that we would have little or no data for these combinations.
+
+- Commonly used sources like the ACS typically publish **marginal** totals (aggregate counts by group), so we may not be able to find reliable population totals for all of these combinations of characteristics.
+
+
+
+## Calibration with raking
+
+Raking (or iterative proportional fitting) is a method of calibration that only requires marginal totals.
+
+- Each calibration variable is weighted separately, one at a time. 
+- This process is repeated until the weights (hopefully) stabilize.
+- Usually, weights with extreme values are "trimmed", which trades some bias for reduced sampling variance.
+
+## Calibration with raking
+
+
+::: {.center}
+
+![](images/raking.gif)
+
+:::
+
+
+
+## Calibration with raking
+
+::::: {.columns}
+::: {.column width="50%"}
+
+One advantage of raking is that it makes it possible to use auxiliary data from multiple sources: measures of age from the census can be combined with measures of voter registration, employment, or health habits all from totally different surveys.
+
+:::
+::: {.column width="50%"}
+![](images/npors_raking.png)
+[NPORS 2023 Raking variables](https://www.pewresearch.org/internet/2024/01/31/social-media-2023-national-public-opinion-reference-survey-npors-methodology/)
+
+:::
+:::::
+
+
+## Post-stratification
+
+- If we do have data on the joint distributions of all the variables, and we have sufficient data for each category, we can post-stratify instead.
+
+
+## Multilevel Regression with Post-stratification
+
+MRP used for:
+
+- Adjusting highly non-representative surveys (such as online opt-in polls)
+- Small area estimation (using a national poll to make an inference about a state)
+
+## Multilevel Regression with Post-stratification
+
+Basic process:
+
+- Use survey results to model individual-level predictive model of public opinion for different subgroups (e.g.,  predicted voted choice for a college educated white woman in Michigan)
+
+- Generate weighted predictions based on the known frequency of those subgroups in the target population.
+
+
+- Multilevel modeling is used in the first step to handle the problem of having limited or no data for certain combinations of predictors. (where data are limited, multilevel models shrink estimates toward the grand mean)
+
+
+## Multilevel Regression with Post-stratification
+
+
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- Gelman et al. used an online opt-in poll of Xbox Live players to predict vote intentions in the 2012 election.
+
+- MRP adjusted estimates closely tracked the national polls. (Raking wasn't able to achieve this level of accuracy)
+
+:::
+::: {.column width="50%"}
+![](images/xbox_poll.png)
+:::
+:::::
+
+## Multilevel Regression with Post-stratification
+
+- MRP requires building a model for every survey question, and it requires joint (not marginal) distributions for the values in the target population.
+
+- We don't have good data on some of the most important predictors, so MRP mostly relies on demographic data.
+
+
+

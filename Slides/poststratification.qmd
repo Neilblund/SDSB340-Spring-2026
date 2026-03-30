@@ -139,7 +139,7 @@ Note that summing these weights for each respondent would now give you a total o
 
 ## Reviewing weights
 
-Note that response rates here might differ, meaning that our resulting survey no longer resembles the population. 
+Note that response rates here might differ, meaning that our resulting survey no longer resembles the population.
 
 ```{r}
 
@@ -183,7 +183,6 @@ gt(rowname_col = "Group", groupname_col = "State")|>
 ```
 
 ## Reviewing weights
-
 
 We can weight for non-response by taking $1/\rho_i$ where $\rho_i$ is the response rate for group i.
 
@@ -231,7 +230,6 @@ gt(rowname_col = "Group", groupname_col = "State")|>
 ```
 
 ## Reviewing weights
-
 
 Multiple weights can be combined multiplicatively:
 
@@ -284,15 +282,13 @@ gt(rowname_col = "Group", groupname_col = "State")|>
 
 ## Additional adjustments
 
-What happens if you *still* see a discrepancy between the sample and the population even after you've adjusted for different probabilities of selection and non-response? 
-
+What happens if you *still* see a discrepancy between the sample and the population even after you've adjusted for different probabilities of selection and non-response?
 
 Possible reasons:
 
 -   Random sampling error
 -   Coverage error
 -   Non-response not fully accounted for by non-response adjustment
-
 
 ## Calibration
 
@@ -308,8 +304,7 @@ Then we would multiply these with our other weights to get a final calibrated we
 
 ## Sources of auxiliary information
 
--  Those benchmarks need to be reliable estimates of the population values. The Census and American Community Survey (ACS) are two widely used sources.
-
+-   Those benchmarks need to be reliable estimates of the population values. The Census and American Community Survey (ACS) are two widely used sources.
 
 ## Calibration for multiple variables
 
@@ -317,95 +312,77 @@ What if we wanted to adjust for gender, ethnicity, education, age, and urban/rur
 
 . . .
 
-This poses some potential problems: 
+This poses some potential problems:
 
-- Even if we make everything dichotomous, that would give us $2^5 = 36$ combinations. There's a good chance that we would have little or no data for these combinations.
+-   Even if we make everything dichotomous, that would give us $2^5 = 36$ combinations. There's a good chance that we would have little or no data for these combinations.
 
-- Commonly used sources like the ACS typically publish **marginal** totals (aggregate counts by group), so we may not be able to find reliable population totals for all of these combinations of characteristics.
-
-
+-   Commonly used sources like the ACS typically publish **marginal** totals (aggregate counts by group), so we may not be able to find reliable population totals for all of these combinations of characteristics.
 
 ## Calibration with raking
 
 Raking (or iterative proportional fitting) is a method of calibration that only requires marginal totals.
 
-- Each calibration variable is weighted separately, one at a time. 
-- This process is repeated until the weights (hopefully) stabilize.
-- Usually, weights with extreme values are "trimmed", which trades some bias for reduced sampling variance.
+-   Each calibration variable is weighted separately, one at a time.
+-   This process is repeated until the weights (hopefully) stabilize.
+-   Usually, weights with extreme values are "trimmed", which trades some bias for reduced sampling variance.
 
 ## Calibration with raking
 
-
-::: {.center}
-
+::: center
 ![](images/raking.gif)
-
 :::
-
-
 
 ## Calibration with raking
 
-::::: {.columns}
+::::: columns
 ::: {.column width="50%"}
-
 One advantage of raking is that it makes it possible to use auxiliary data from multiple sources: measures of age from the census can be combined with measures of voter registration, employment, or health habits all from totally different surveys.
-
 :::
-::: {.column width="50%"}
-![](images/npors_raking.png)
-[NPORS 2023 Raking variables](https://www.pewresearch.org/internet/2024/01/31/social-media-2023-national-public-opinion-reference-survey-npors-methodology/)
 
+::: {.column width="50%"}
+![](images/npors_raking.png) [NPORS 2023 Raking variables](https://www.pewresearch.org/internet/2024/01/31/social-media-2023-national-public-opinion-reference-survey-npors-methodology/)
 :::
 :::::
 
-
 ## Post-stratification
 
-- If we do have data on the joint distributions of all the variables, and we have sufficient data for each category, we can post-stratify instead.
-
+-   If we do have data on the joint distributions of all the variables, and we have sufficient data for each category, we can post-stratify instead.
 
 ## Multilevel Regression with Post-stratification
 
 MRP used for:
 
-- Adjusting highly non-representative surveys (such as online opt-in polls)
-- Small area estimation (using a national poll to make an inference about a state)
+-   Adjusting highly non-representative surveys (such as online opt-in polls)
+-   Small area estimation (using a national poll to make an inference about a state)
 
 ## Multilevel Regression with Post-stratification
 
 Basic process:
 
-- Use survey results to model individual-level predictive model of public opinion for different subgroups (e.g.,  predicted voted choice for a college educated white woman in Michigan)
+-   Use survey results to model individual-level predictive model of public opinion for different subgroups (e.g., predicted voted choice for a college educated white woman in Michigan)
 
-- Generate weighted predictions based on the known frequency of those subgroups in the target population.
+-   Generate weighted predictions based on the known frequency of those subgroups in the target population.
 
-
-- Multilevel modeling is used in the first step to handle the problem of having limited or no data for certain combinations of predictors. (where data are limited, multilevel models shrink estimates toward the grand mean)
-
+-   Multilevel modeling is used in the first step to handle the problem of having limited or no data for certain combinations of predictors. (where data are limited, multilevel models shrink estimates toward the grand mean)
 
 ## Multilevel Regression with Post-stratification
 
-
-
-::::: {.columns}
+::::: columns
 ::: {.column width="50%"}
+-   \[@gelman2016high\] used an online opt-in poll of Xbox Live players to predict vote intentions in the 2012 election.
 
-- Gelman et al. used an online opt-in poll of Xbox Live players to predict vote intentions in the 2012 election.
-
-- MRP adjusted estimates closely tracked the national polls. (Raking wasn't able to achieve this level of accuracy)
-
+-   MRP adjusted estimates closely tracked the national polls. (Raking wasn't able to achieve this level of accuracy)
 :::
+
 ::: {.column width="50%"}
 ![](images/xbox_poll.png)
+
+<https://sites.stat.columbia.edu/gelman/research/published/high_frequency_polling.pdf>
 :::
 :::::
 
 ## Multilevel Regression with Post-stratification
 
-- MRP requires building a model for every survey question, and it requires joint (not marginal) distributions for the values in the target population.
+-   MRP requires building a model for every survey question, and it requires joint (not marginal) distributions for the values in the target population.
 
-- We don't have good data on some of the most important predictors, so MRP mostly relies on demographic data.
-
-
-
+-   We don't have good data on some of the most important predictors, so MRP mostly relies on demographic data.

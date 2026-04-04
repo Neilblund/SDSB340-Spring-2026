@@ -26,21 +26,27 @@ variables <- c(
   "pol_news"
 )
 
+
+survey_select<-survey|>
+  select(all_of(variables))
+
 # making a predictor matrix for imputations
-predMat <- survey |>           
-  select(all_of(variables)) |> # select only the columns 
+predMat <- survey_select |>           
+  # select only the columns 
   make.predictorMatrix()       # create a predictor matrix
+
 
 # The row name is the target variable, the columns indicate the predictors. 
 # Changing x[i,j] to 0 would prevent variable j from being used to predict row i
 
-print(predMat)
+
+
 
 imputedData<- mice(
-  survey_select,             # original data 
+  data = survey_select,             # original data 
   predictorMatrix = predMat, # Matrix of predictors
-  m=5,                       # number of imputed data sets to create
-  maxit=50,                  # maximum iterations before quitting
+  m=20,                       # number of imputed data sets to create
+  maxit=10,                  # maximum iterations before quitting
   meth='pmm',                # predictive mean matching
   seed=500                   # random number seed for replicability
   
@@ -61,8 +67,4 @@ t.test(survey$ft_noem, na.rm=T)|>
 
 # note that there's not a huge difference here, but the estimated support for Noem
 # is *slightly* increased under the imputation model
-
-
-
-
 

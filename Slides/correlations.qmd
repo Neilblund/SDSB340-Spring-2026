@@ -1,0 +1,765 @@
+---
+title: "Assessing Scales"
+format:
+    revealjs:
+        theme: [blueyellow]
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+        smaller: true
+        filters:
+          - code-fullscreen
+bibliography: references.bib
+slide-level: 4
+execute:
+  echo: false
+lightbox: true
+---
+
+
+```{r}
+library(tidyverse)
+library(labelled)
+library(gt)
+library(gtsummary)
+library(ggstats)
+
+load("C:/Users/neilb/Desktop/dataS1.RData")
+
+othering_labs<-(
+"O1: I feel as though [in-party] are very different from [out-party].
+O2: Unlike [in-party], [out-party] are generally all the same.
+O3: Although they hold different views, [out-party] are very similar to us [in-party] as people.
+O4: Some people like to say that us [in-party] are fundamentally different from [out-party], but deep down we are all Americans.
+O5: As [in-party], It is important to differentiate ourselves from [out-party].
+O6: It is us [in-party] versus [out-party].
+O7: [out-party] lead very different lifestyles from us as [in-party].
+O8: [out-party] are hurting our society.
+O9: Compared to [in-party], [out-party] seem like strange people.
+O10: [out-party] seem out of place when they are around us [in-party].
+O11: When I am around [out-party], I feel like I am among people I cannot relate to at all.
+O12: [out-party] live in a different world from us [in-party].
+O13: Whatever differences there are between us [in-party] and [out-party] are not important compared to what we have in common.
+O14: It is often difficult for us as [in-party] to relate to people who are [out-party].
+O15: [out-party] act in ways that us [in-party] could never understand.")|>
+  str_split('\\n')|>
+  pluck(1)
+
+othering_cols<-paste0("o", 1:15)
+labs<-setNames(othering_labs, othering_cols)
+othering<-dat1|>
+  select(all_of(othering_cols))
+var_label(othering) <- labs
+
+agreelevs<-c("Strongly disagree", "Disagree", "Somewhat disagree", 
+          "Neither agree nor disagree", 
+          "Somewhat agree", "Agree", "Strongly Agree"
+          )
+
+othering_fac<-othering|>
+  
+  mutate(across(everything(), .fns=~factor(agreelevs[.x])))
+var_label(othering_fac) <- labs
+
+```
+
+# Assessing scales
+
+- We're using multiple items to measure some latent value, how can be tell whether our measures are any good?
+
+## Assessing scales
+
+
+
+::::: {.columns}
+::: {.column width="50%"}
+- To make the conversation more concrete, we'll use some example data from a recent paper by [@campos2026new] on measuring "affective polarization", which is defined as dislike and distrust of the opposing political party. 
+
+:::
+::: {.column width="50%"}
+![](images/campos_federico_abstract.png)
+:::
+:::::
+
+## Assessing scales: affective polarization
+
+- Affective polarization is distinct from ideological polarization or polarization on policy issues. It's possible to really loathe members of the opposing party even if you have few substantive differences on policy questions.
+
+- It's also distinct from feelings among elites or feelings in the general public towards specific politicians.
+
+- Social psychologists link affective polarization to social identity theories, so it's more akin to things like racial/religious conflict, or even the kinds of rivalries people develop over professional sports.
+
+
+## Assessing scales: affective polarization
+
+::::: {.columns}
+::: {.column width="50%"}
+- "Warmth" bias is a common way to measure affective polarization, and it uses the difference between one's assessment of their own party vs. their assessment of the opposing party on a feeling thermometer (so, Republican feeling - Democratic feeling for a Democrat, and Democratic feeling - Republican feeling for a Republican)
+
+- This metric is useful, in part, because it's a question that's appeared on surveys for decades.
+
+- Positive feelings towards the in-party are relatively stable, but negative feelings towards the out-party have increased.
+
+:::
+::: {.column width="50%"}
+![](images/polarization_therm.png)
+
+[@iyengar2019origins]
+:::
+:::::
+
+
+## Assessing scales: affective polarization
+
+The "warmth bias", but there's some slippage between this operational definition and the conceptual definition of affective polarization:
+
+- Warmth bias may be a function of ideological polarization.
+
+- Warmth bias may be driven by feelings about the politicians in an opposing party, rather than feelings about party members *in general*
+
+- Warmth bias may not tap into the kinds of identity-based conflict that affective polarization assumes.
+
+
+
+
+## Assessing scales: affective polarization
+
+The authors propose a new scale that measures affective polarization as a multidimensional construct with three components:
+
+- Othering: "a belief that partisans are fundamentally different from one another." 
+- Aversion: "a tendency to dislike and avoid" members of the opposing party.
+- Moralization: "a tendency to hold a strong moralized view of one's own partisan identity".
+
+. . .
+
+They develop and test 45 items (15 for each dimension) to create a new scale for affective polarization.
+
+## Assessing scales: affective polarization
+
+::::: {.columns}
+::: {.column width="50%"}
+- The initial 45 were winnowed down to just 9 after initial testing, but the authors shared the results for the entire questionnaire.
+
+:::
+::: {.column width="50%"}
+![](images/campos_federico_finalscale.png)
+:::
+:::::
+
+
+## Assessing a single subscale
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- For simplicity, we'll focus on the 15 items used to measure the "Othering" dimension first.
+
+- The goal is to use these items to measure a single latent construct: the tendency to "other" the out-party.
+
+- The authors did multiple pilot studies to validate and refine the instrument, so we'll look at responses to their first survey to see how the measure works.
+
+:::
+::: {.column width="50%"}
+```{r}
+#data.frame("Item" = labs[c("o1", "o7", "o8", "o10", "o12", "o14", "o9", "o15")])|>
+#  gt()
+
+# Direction
+item_data<-data.frame("Item" = labs)|>
+  mutate(direction = factor(c(0, 0, 1, 1, 0, 0, 0, 0, 0,0,0,0,1, 0,0), labels=c("Forward", "Reversed")))
+  
+othering[,c('o3', 'o4', 'o13')] <- (othering[,c('o3', 'o4', 'o13')] *-1) + 8
+
+item_data|>
+  gt()|>
+  gtsave("images/othering_items.png")
+
+knitr::include_graphics("images/othering_items.png")
+
+
+
+```
+:::
+:::::
+
+
+## Assessing a single subscale
+
+
+```{r}
+#| fig-width: 11.5
+#| fig-height: 6.5
+
+
+
+
+#othering_fac|>  
+  #select(all_of(c("o1", "o7", "o8", "o10", "o12", "o14", "o9", "o15")))|>
+#  tbl_likert()
+
+
+othering_fac|>  
+ # select(all_of(c("o1", "o7", "o8", "o10", "o12", "o14", "o9", "o15")))|>
+  gglikert()
+
+
+
+
+
+
+```
+
+
+## Assessing a single subscale: correlation
+
+- At a minimum, we should expect items that are supposed to measure the same construct to "vary together" for a single respondent: if I have high values on the first 14 items, I should probably have high values on the last one, and vice-versa.
+
+- So analyzing the correlations or covariances between items is a good starting point for assessing a scale.
+
+### Correlation and covariance
+
+Covariance is a measure of the joint variability of two variables:
+
+$$
+\text{Cov}(x, y) = \sum^N_{i=1}\frac{(x_i - \bar{x_i})(y_i-\bar{y})}{n-1}
+$$
+
+. . .
+
+
+Correlation is just a measure of the joint variability that has been scaled by the product of the standard deviation for both items. 
+
+$$
+\text{Correlation}(x, y) = \frac{\text{Cov}(x, y)}{S_x \times S_y}
+$$
+
+### Correlation
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- Since correlation coefficients are scaled, they always range between -1 and +1 and can be compared across items even if they're originally measured on different scales.
+
+- The magnitude of a correlation indicates the strength of association, so -.8 and +.8 would both indicate strong associations between two variables.
+
+- Correlations are bidirectional, so the $cor(X,Y) = cor(Y,X)$
+
+
+:::
+::: {.column width="50%"}
+$$
+\text{Correlation}(x, y) = \frac{\text{Cov}(x, y)}{S_x \times S_y}
+$$
+:::
+:::::
+
+
+### Correlation
+
+
+::::: {.columns}
+::: {.column width="50%"}
+- Correlation coefficients assume we have continuous numeric data. Likert items like the ones used on most surveys are technically discrete, but this doesn't *necessarily* cause a problem if they're ordered and we convert them to numbers: Strongly Disagree becomes 1, Disagree becomes 2, Somewhat disagree = 3... and so on.
+
+:::
+::: {.column width="50%"}
+```{r}
+library(MASS)
+
+# Set parameters
+
+corfunc <- function(n, rho) {
+              # Number of observations
+  mu <- c(0, 0)              # Means of the variables
+                  # Desired correlation
+  sigma <- matrix(c(
+    1,
+    rho,
+    # Covariance matrix (assuming SD=1)
+    rho,
+    1
+  ), nrow = 2)
+  
+  # Generate data
+  set.seed(123)
+  data <- mvrnorm(n = n, mu = mu, Sigma = sigma) |>
+    data.frame()
+  
+  colnames(data) <- c("X", "Y")
+  return(data)
+}
+set.seed(1000)
+cors<-c(-1, -.8, 0, .8, 1)
+outcome<-lapply(cors, function(x) corfunc(x, n=1000))|>
+  dplyr::bind_rows()
+outcome$correlation<-factor(paste0("r = ",  rep(cors, each=1000)),
+                            levels = paste0("r = ", cors),
+                            )
+
+ggplot(outcome, aes(x= X, y=Y))+ geom_point(alpha=.1) +
+  facet_wrap(~correlation) +
+  theme_bw()
+
+# Verify correlation
+
+detach("package:MASS")
+
+```
+:::
+:::::
+
+### Correlation
+
+
+::::: {.columns}
+::: {.column width="50%"}
+- You'll often see correlations displayed in a correlation matrix that displays the correlation between every item with every other item. 
+- Since correlations are bi-directional, the upper left part of this matrix would be a mirror image of the lower right.
+- The diagonal elements of the correlation matrix are always 1.
+
+
+:::
+::: {.column width="50%"}
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+
+correlations<-othering|>
+  drop_na()|>
+  cor()
+  
+
+#correlations|>data.frame()|>
+#  rownames_to_column()|>
+##  pivot_longer(cols=-rowname)|>
+##  rename(x1 = rowname, x2=name)|>
+#  ggplot(aes(x=x1, y=x2, fill=value)) + geom_tile()
+library(ggcorrplot)
+plt<-ggcorrplot(
+  correlations,
+  type='lower',
+  outline.color = "white",
+  ggtheme = ggplot2::theme_minimal(),
+  colors = c("#6D9EC1", "white", "#E46726"),
+  lab=TRUE,
+  digits=1,
+  show.diag = TRUE,
+  legend.title = 'Correlation',
+  lab_size=3
+) + 
+  labs(title = "Correlations between 'Othering' items")
+
+plt
+
+```
+
+::: fragment
+
+Why do we see negative coefficients for some items?
+
+:::
+:::
+:::::
+
+
+### Correlation
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- Some items were deliberately reverse coded here, so we should reverse code them so that "Strongly agree" becomes 1 instead of "Strongly disagree".
+
+- (one reason to look at correlation matrices is so you can spot things like this.)
+
+
+:::
+::: {.column width="50%"}
+
+:::: {.r-stack}
+
+```{r}
+knitr::include_graphics("images/othering_items.png")
+```
+
+::: {.fragment}
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+plt
+
+```
+
+
+:::
+
+::: {.fragment}
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+
+othering[,c('o3', 'o4', 'o13')] <- (othering[,c('o3', 'o4', 'o13')] *-1) + 8
+
+correlations<-othering|>
+  drop_na()|>
+  cor()
+  
+
+#correlations|>data.frame()|>
+#  rownames_to_column()|>
+##  pivot_longer(cols=-rowname)|>
+##  rename(x1 = rowname, x2=name)|>
+#  ggplot(aes(x=x1, y=x2, fill=value)) + geom_tile()
+ggcorrplot(
+  correlations,
+  type='lower',
+  outline.color = "white",
+  ggtheme = ggplot2::theme_minimal(),
+  colors = c("#6D9EC1", "white", "#E46726"),
+  lab=TRUE,
+  digits=1,
+  show.diag = TRUE,
+  legend.title = 'Correlation',
+  lab_size=3
+) +
+  labs(title = "Correlations between 'Othering' items",
+       subtitle = "(after reverse coding select items)"
+       )
+
+
+```
+:::
+
+
+::::
+
+:::
+:::::
+
+
+
+
+### Correlation: some assumptions
+
+::::: {.columns}
+::: {.column width="50%"}
+- Correlations (and covariances) assume both linearity and monotonicity: the effect of X1 on X2 should be constant and it should always go in the same direction.
+
+- You can still calculate a correlation even if there's a non-monotonic relationship, but it isn't a good indicator of how two variables move together.
+
+:::
+::: {.column width="50%"}
+
+::: fragment
+
+```{r}
+
+# Set parameters
+
+
+data<-tibble(X = rnorm(1000),
+       Y = X - X^2  + rnorm(1000)
+       )
+correlation<-cor(data)[1,2]
+
+ggplot(data, aes(x= X, y=Y))+ geom_point(alpha=.3) +
+  annotate(geom = 'text', x = 0, y=-10, 
+           size = 10,
+           label=sprintf('r = %s', round(correlation, digits=2))) +
+  theme_bw()
+
+
+```
+:::
+
+:::
+:::::
+
+### Correlation
+
+- Correlations are especially useful for exploratory data analysis and for identifying coding errors or spotting obvious problems with a scale. And they can give a rough sense of whether multiple items are picking up on some latent characteristic.
+
+- What if we want a summary measure of a scale's internal reliability?
+
+
+
+
+
+
+## Scale reliability and Classical test theory
+
+Imagine that everyone has a "true" value of some latent trait, but individual items measure it *imperfectly*:
+
+$$
+\begin{align}
+O& = T + E\\
+O& = \text{Measured score}\\
+T& = \text{Actual value of the latent trait}\\
+E& = \text{Random measurement error}
+\end{align}
+$$
+
+### Variability in scores
+
+
+If we take all of the items on a scale, we'll expect to see some variability across respondents. So how much of that variability comes from differences in $T$ (variance in the true latent characteristic) and how much is coming from $E$ (the random error)?
+
+```{r}
+othering|>
+  rowSums()|>
+  tibble()|>
+  ggplot(aes(x=`rowSums(othering)`)) + geom_histogram() +
+  theme_bw() +
+  labs(x = "Sum of othering scale items", 
+       title = 'Othering scores for all respondents n = 500)'
+       )
+
+```
+
+
+ 
+
+### True scores
+
+$$
+O = T + E
+$$
+
+By definition, we don't measure latent traits directly, so "T" and "E" are unknown. However, we could estimate the relative contribution of random error to a score provided we make some (strong) assumptions about how our data relates to the latent trait.
+
+::: incremental
+
+- [Unidimensionality]{.yellow} (aka homogeneity) the items on my scale only measure **one** latent construct.
+
+- [Random Error]{.yellow}. The $E$ term is random with a mean of 0, it is uncorrelated across items and uncorrelated with $T$.
+
+- [Linearity]{.yellow} moving from "Strongly agree" to "Agree" requires the same amount of the *latent trait* as moving from "Agree" to "Somewhat agree".
+
+- [Tau-equivalence]{.yellow}: all of the questions measure the latent trait more-or-less equally well.
+
+
+
+:::
+
+
+### True scores
+
+- If those assumptions hold, then the covariance between any two scale items should be driven entirely by the variance in the true score (once we account for the true score, all that's left over should be random noise.)
+
+- This means that we can estimate the relative size of the error from the ratio of the item level covariances relative to the total variance.
+
+
+### True scores
+
+$$
+\frac{\sum_{i\neq j}{Cov(X_i, X_j)}}{\sum_{i\neq j}{Cov(X_i, X_j)} + \sum^{k}_{i=1}{Var(X_i)}}
+$$
+
+. . .
+
+
+To ensure this scales from 0 to 1 regardless of the number of questions on the scale, we multiply the result by $\frac{k}{k-1}$, where $k$ is the number of items:
+
+$$
+\alpha = \frac{k}{k-1} \left( \frac{\sum_{i\neq j}{Cov(X_i, X_j)}}{\sum_{i\neq j}{Cov(X_i, X_j)} + \sum^{k}_{i=1}{Var(X_i)}} \right)
+$$
+
+
+
+### Cronbach's Alpha
+
+The formula on the previous slide ends up simplifying to: $\frac{k}{k-1} \left( 1 - \frac{\sum{Var(X_i)}}{V_t} \right)$, where $V_t$ is the variance of summed scores for each respondent. 
+- This score is usually called Cronbach's Alpha, or just $\alpha$. 
+
+- If the assumptions hold, Cronbach's alpha represents the proportion of variance in observed scores that is explained by the true scores, so it gives us a rough measure of the amount of error in measurements. An $\alpha = .7$ would mean that true score variance explains 70% of the variation in our scores (and random error accounts for the remainder)
+
+### Alpha and the correlation coefficient
+
+Because of the close association between covariance and correlations, Cronbach's $\alpha$ can also be calculated using the average correlation between all of the off-diagonal items in a correlation matrix:
+
+$$
+\begin{align}
+\alpha = \frac{k \times \bar{r}}{1+(k-1) \times\bar{r}}\\
+\bar{r} = \text{avg. correlation of all off-diagonal items}\\
+k = \text{The number of scale items}\\
+\end{align}
+$$
+
+. . .
+
+If some items have different scales (such as some measured with 7 categories and others with 5), this formula gives a standardized measure of $\alpha$ that will differ from the previous case.
+
+
+### Cronbach's Alpha
+
+- The assumption of Tau equivalence is probably never true in practice! Some questions are better than others at measuring a trait.
+
+- However, if Tau equivalence is violated, it will bias $\alpha$ downward. So, Cronbach's alpha is often said to represent the **lower bound** on scale reliability (it could be better, but it shouldn't be worse.)
+
+
+
+
+### Cronbach's Alpha
+
+
+
+::::: {.columns}
+::: {.column width="50%"}
+- The alpha score for the 15 item scale of "Othering" questions is .93. Meaning that 93% of the variance of the total score for this scale is explained by the "true" value of the construct (provided assumptions hold!)
+
+- $\alpha$ greater than .7 is considered "acceptable", so .93 is quite good by conventional standards, although this is just a rule of thumb and higher is generally better.
+
+- Note that none of the item-level correlations are extremely strong, but the scale has good reliability because we're aggregating over multiple questions.
+
+:::
+::: {.column width="50%"}
+
+```{r,echo=TRUE, eval=FALSE}
+
+alpha_stats<-psych::alpha(othering)
+alpha_stats
+
+```
+
+```{r, echo=FALSE}
+
+alpha_stats<-psych::alpha(othering)
+alpha_stats$total|>
+  t()|>
+  data.frame()|>
+  rownames_to_column(var = 'metric')|>
+  rename(value = V1)|>
+  filter(metric %in% c("raw_alpha", "std.alpha", "average_r"))|>
+  gt()|>
+  fmt_number()
+
+
+```
+:::
+:::::
+
+
+
+### Cronbach's Alpha
+
+In addition to giving us a summary measure of reliability, most software implementations will report values of alpha for dropping a single item. This can be a useful way to spot questions that might be so weakly correlated with your construct that your scale could improve by removing them:
+
+```{r, eval=FALSE}
+
+scores<-alpha(othering)
+scores$alpha.drop|>
+  dplyr::select("Alpha if dropped" = raw_alpha )|>
+  rownames_to_column(var = "Item")|>
+  gt()|>
+  fmt_number(decimals = 3)
+
+```
+
+. . .
+
+However, you should be cautious before dropping items solely because they improve alpha in a sample.
+
+
+
+### What could go wrong?
+
+- Cronbach's alpha is ubiquitous, but its also been widely criticized because it relies on very strong assumptions and its meaning when those assumptions are violated is not well understood in practice.
+
+- Cronbach's alpha is also often misinterpreted as a measure or indicator of unidimensionality, but note that this was actually one of the assumptions for using it in the first place. 
+
+
+### What could go wrong?
+
+Some ways we might have a scale that measures multiple latent constructs:
+
+::: incremental
+
+- Items on an aptitude test might tap into culture, language, motivation, or socioeconomic status.
+
+- Responses to questions about current events are probably partly measuring "interest in politics" in addition to measuring policy preferences or ideology.
+
+- Some constructs are defined as having multiple dimensions: Campos and Federico's definition of affective polarization has three components. How do I know the questions we looked at only capture a single dimension?
+
+:::
+
+
+### What happens if items are multidimensional?
+
+::::: {.columns}
+
+::: {.column width="33%"}
+::: fragment
+![](images/venn_nooverlap.png)
+We would expect low values of $\alpha$ here because the items are not correlated with each other.
+:::
+
+:::
+
+
+::: {.column width="33%"}
+::: fragment
+![](images/venn_overlap.png)
+We would expect a higher value for $\alpha$ here because all the items covary with one or more other items.
+:::
+:::
+
+::: {.column width="33%"}
+::: fragment
+![](images/venn_mdimension.png)
+We could still have high values of $\alpha$ here if the items within the same dimension have a strong correlation and/or if the latent constructs are at least partially correlated with each other.
+:::
+:::
+:::::
+
+
+### What happens if items are multidimensional?
+
+We can see this problem in the affective polarization data: the individual subscales have a high alpha, but throwing them all together in a single scale produces an even higher estimate, even though we *know* that this scale measures multiple dimensions by design.
+
+```{r}
+othering_cols<-paste0("o", 1:15)
+moralizing_cols<-paste0("m", 1:15)
+aversion_cols<-paste0("a", 1:15)
+
+a1<-dat1[,othering_cols]|>psych::alpha()
+a2<-dat1[,moralizing_cols]|>psych::alpha()
+a3<-dat1[,aversion_cols]|>psych::alpha()
+total<-dat1[,c(othering_cols, moralizing_cols, aversion_cols)]|>psych::alpha()
+
+tibble("Othering" = a1$total$raw_alpha,
+       "Moralizing" = a2$total$raw_alpha,
+       "Aversion" = a3$total$raw_alpha,
+       "Combined Scale" = total$total$raw_alpha)|>
+  gt()|>
+  fmt_number()|>
+  tab_header(title ="Cronbach's alpha for sub-items and combined scale")
+
+
+
+```
+
+### What happens if items are multidimensional?
+
+- In some cases multidimensionality signifies a problem with the measurement, in others it might be part of a theory we're trying to test, but it usually isn't something we just want to assume without checking first.
+
+
+- ^ Which brings us to factor analysis 👓
+
+
+
+
+
+
+
+

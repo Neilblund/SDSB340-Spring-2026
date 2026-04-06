@@ -1,0 +1,145 @@
+---
+title: "Custom thank you page message in Qualtrics"
+format:
+    revealjs:
+        theme: [blueyellow]
+        code-overflow: wrap
+        width: 1280
+        height: 720
+        df-print: tibble
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: false
+        smaller: true
+bibliography: references.bib
+slide-level: 4
+execute:
+  echo: false
+lightbox: true
+---
+
+### Setting a custom thank you page
+
+- I'll be offering students in another class some extra credit for completing your survey, but in order to track their participation, I need your survey to redirect them to a separate survey where they can enter their UID number.
+
+- This isn't overly complicated, but just to make sure everyone gets the same stuff, I'm including these instructions.
+
+### Setting up a custom thank you page: Step 1
+
+::::: columns
+::: {.column width="50%"}
+Step 1.  Navigate to your survey in the survey builder and click the block at the bottom of your survey.
+:::
+
+::: {.column width="50%"}
+![](images/end_of_survey_block.png)
+:::
+:::::
+
+### Setting up a custom thank you page: Step 2
+
+::::: columns
+::: {.column width="50%"}
+
+
+Step 2.  Click the "end of survey" section, and you should see some options appear in the left panel
+:::
+
+::: {.column width="50%"}
+![](images/end_of_survey_customize.png)
+:::
+:::::
+
+### Setting up a custom thank you page: Step 3
+
+::::: columns
+::: {.column width="50%"}
+
+
+Step 3.  Use the dropdown menu to select "Custom" for the end of survey message.
+:::
+
+::: {.column width="50%"}
+![](images/end_of_survey3.png)
+:::
+:::::
+
+### Setting up a custom thank you page: Step 4
+
+::::: columns
+::: {.column width="50%"}
+
+
+Step 4.  Select the lower menu and go to "My Library" \> "New message"
+:::
+
+::: {.column width="50%"}
+![](images/end_of_survey4.png)
+:::
+:::::
+
+### Setting up a custom thank you page: Step 5
+
+::::: columns
+::: {.column width="50%"}
+Step 5.  Enter a name in the "Description" field, then hit the "source" icon to bring up the source code editor.
+:::
+
+::: {.column width="50%"}
+![](images/end_of_survey5.png)
+:::
+:::::
+
+### Setting up a custom thank you page: Step 6
+
+Step 6. Make sure the source icon is highlighted, then you can copy the code from below into the editor window exactly as written.
+
+``` html
+<p>Thank you for completing this survey! Your response has been recorded.</p>
+<p><b>If you are a student in GVPT201, please 
+<a href="https://umdsurvey.umd.edu/jfe/form/SV_bwMeEjXJ7sAnWe2?origin=umd">click here</a> 
+and enter your UID so you can receive credit for completing the survey.</b></p>
+```
+
+![](images/end_of_survey6.png){fig-align="center" width="40%"}
+
+
+### Setting up a custom thank you page: Step 7
+
+Step 7. Hit save
+
+
+
+![](images/end_of_survey7.png){fig-align="center" width="40%"}
+
+### Setting up a custom thank you page: Step 8
+
+Step 8. Make sure the survey block should looks something like this:
+
+![](images/end_of_survey8.png){fig-align="center" width="60%"}
+
+
+### Setting up a custom thank you page: Step 9
+
+Step 9. Hit the "Publish" button at the top right, this will update your survey with the new end of survey message
+
+![](images/end_of_survey9.png){fig-align="center" width="60%"}
+
+### Setting up a custom thank you page: Step 10
+
+Step 10 Verify that the link works. Clicking the blue link text should send you to this page:
+
+
+![](images/end_of_survey10.png){fig-align="center" width="60%"}
+
+### Setting up a custom thank you page
+
+That's it! Please send me an email if you have any questions.
+
+

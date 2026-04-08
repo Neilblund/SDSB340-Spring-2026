@@ -164,7 +164,8 @@ library(labelled)
 library(gt)
 library(gtsummary)
 
-survey<-haven::read_sav('https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/raw_survey.sav')
+survey<-haven::read_sav('https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/raw_survey.sav')|>
+  as_factor()
 
 ```
 
@@ -202,7 +203,7 @@ survey<-survey|>
 
 ## Multi-response items
 
-The "race" question on this survey allowed respondents to select more than one option. This makes sense from a questionairre design perspective, but its hard to work with in an analysis.
+The "race" question on this survey allowed respondents to select more than one option. This makes sense from a questionnaire design perspective, but its hard to work with in an analysis.
 
 
 
@@ -226,7 +227,9 @@ survey|>
 
 ```
 
-## Multi-response items
+
+
+### Multi-response items
 
 The vast majority of respondents only gave one (or zero) answers to this question. So the easiest approach here might be to classify people by their selected race, and then add a "multi-racial" category for everyone else.
 
@@ -239,7 +242,7 @@ table(race_counts)
   
 ```
 
-## Multi-response items
+### Multi-response items
 
 
 ```{r}
@@ -271,17 +274,18 @@ survey$summary_race<-rs # add the variable to the data set
 ```
 
 
-## Multi-response items
+### Multi-response items
 
 Using `case_when` allows for more fine grained control over complex conditional statements. 
 
 Each argument in `case_when` is evaluated in sequence. `.default` sets the values for any elements that aren't matched by any of the preceding conditions.
 
-## Multi-response items
+### Multi-response items
 
-
+We can use a `case_when` statement to get a 6 category measure that combines race and ethnicity:
 
 ```{r}
+
 race_counts<-survey|>
   select(starts_with("race_"))|>
   apply(X=_, 1, FUN=function(x) sum(!is.na(x)))
@@ -307,7 +311,8 @@ var_label(survey$ethnicity_race) <-"Race/Ethnicity summary"
 ```
 
 
-## Multi-response items
+
+### Multi-response items
 
 
 ```{r, echo=FALSE}
@@ -318,6 +323,8 @@ survey|>
   distinct()
 
 ```
+
+
 
 
 
@@ -386,6 +393,46 @@ spendgov_mean<-rowMeans(spendgov_numeric, na.rm=T)
 
 
 :::
+
+
+### Try it out
+
+Get numeric versions and an additive index of the 6 `trust_groups_` variables.
+
+
+```{r}
+#| code-fold: true
+
+levels<-c("Never", 
+          "Sometimes", 
+          "About half the time", 
+          "Most of the time",
+          "Always"
+          )
+
+trust_numeric<-survey|>
+  select(starts_with("trust"))|>
+  apply(MARGIN = 2, FUN = function(x) match(x, levels))
+
+trust_avg<-rowMeans(trust_numeric, na.rm=T)
+```
+
+```{r}
+#| code-fold: true
+
+trust_numeric<-survey|>
+  select(starts_with("trust_groups_"))|>
+  mutate(across(.cols = everything() , 
+                .fns=~as.numeric(.x))
+         
+         )
+
+trust_avg<-rowMeans(trust_numeric, na.rm=T)
+
+
+
+```
+
 
 
 ## Descriptive Statistics
@@ -606,6 +653,8 @@ ggcorrplot(cmat,
 
 ### Correlation plots: recommendations
 
+- Get the correlation matrix for the numeric `trust_groups` measures you created in the previous section.
+
 - Try adding `hc.order = TRUE` to the `ggcorrplot` command and note what changes. 
 
 - Try changing the color scheme.
@@ -691,6 +740,11 @@ $\alpha$ is subject to sampling error like any other sample statistic. We can ge
 ```{r}
 alphas$feldt
 ```
+
+### Try it out
+
+
+- Get the alpha value for the `trust_groups` measure and interpret your results.
 
 
 ### Suggestions

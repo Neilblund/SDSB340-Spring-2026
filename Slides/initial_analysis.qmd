@@ -1,0 +1,709 @@
+---
+title: ""
+format:
+    revealjs:
+        df-print: tibble
+        theme: [blueyellow]
+        transition: fade
+        width: 1280
+        height: 720
+        scrollable: true
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+        filters:
+          - code-fullscreen
+bibliography: references.bib
+slide-level: 4
+execute:
+  echo: true
+lightbox: true
+---
+
+
+```{r, echo=FALSE}
+library(haven)
+library(tidyverse)
+library(labelled)
+library(gt)
+library(gtsummary)
+
+
+file_location<-here::here("GVPT+201+Spring+2026+Survey_April+7,+2026_17.57.sav")
+survey <- read_sav(file_location)
+
+
+
+```
+
+## Initial Analysis
+
+- Checking for survey completeness
+
+- Descriptive statistics
+
+- Correlations and Alpha
+
+
+## Initial Analysis
+
+In the survey builder, go to the "Data & Analysis Tab":
+
+
+![](images/qualtrics_data.png)
+
+
+## Initial Analysis
+
+
+::::: {.columns}
+::: {.column width="50%"}
+- You can start by checking the response quality tab to automatically filter low-quality responses.
+:::
+::: {.column width="50%"}
+![](images/qualtrics_response_quality.png)
+
+:::
+:::::
+
+
+
+## Initial Analysis
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- Once you're set, you can export the survey.
+
+:::
+::: {.column width="50%"}
+![](images/qualtrics_export.png)
+
+:::
+:::::
+
+
+
+
+## Initial Analysis
+
+::::: {.columns}
+::: {.column width="50%"}
+- You *can* export as a `.csv` file, but this may cause you to lose some useful formatting information, so I recommend exporting the data as an SPSS file (this will have a `.sav`) extension.
+:::
+::: {.column width="50%"}
+![](images/qualtrics_spss.png)
+
+:::
+:::::
+
+
+## Data import
+
+::::: {.columns}
+::: {.column width="50%"}
+- Hit "Import Dataset" in the top-right window and select "From SPSS"
+
+- Hit Browse when the new window opens, then locate your file.
+:::
+::: {.column width="50%"}
+
+::: {.r-stack}
+![](images/r_studio_import_data.png)
+
+::: fragment
+![](images/r_studio_import_data_window.png)
+:::
+
+:::
+:::
+:::::
+
+## Data import
+
+
+## Data import
+
+::::: {.columns}
+::: {.column width="50%"}
+- The default behavior is to name the R object after the file, this will give you a stupidly-long object name, so change it to something reasonable.
+
+- The window in the bottom-left shows the code you need to import the data copy this and put it at the top of your analysis script or markdown file.
+
+:::
+::: {.column width="50%"}
+![](images/r_studio_import_name.png)
+
+![](images/r_studio_import_code.png)
+:::
+:::::
+
+
+## Data import
+
+When working in SPSS formatted data:
+
+- Column names will come from whatever you named your question in Qualtrics. This may just be "Q1" "Q2" "Q3"
+
+- The column labels will show the full text of your questions.
+
+
+## Data import
+
+(Since I know many of you don't have many responses yet, I've included some example Qualtrics data that you can import by running the code below.
+
+```{r}
+library(tidyverse)
+library(haven)
+library(labelled)
+library(gt)
+library(gtsummary)
+
+survey<-haven::read_sav('https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/raw_survey.sav')
+
+```
+
+
+## Data import
+
+When working with SPSS formatted data:
+
+- Categorical variables will be in an SPSS format, and you'll need to convert them to factor variables using `as_factor()`. 
+
+- In most cases, you can do this non-selectively to the entire data set:
+
+::: fragment
+
+```{r, echo=TRUE}
+
+survey<-survey|>
+  as_factor()
+  
+```
+
+:::
+
+- Be careful when using this on numeric data.
+
+
+## What to do
+
+- Cleanup
+
+- Basic Descriptive Statistics
+
+- Exploratory Data Analysis
+
+
+## Multi-response items
+
+The "race" question on this survey allowed respondents to select more than one option. This makes sense from a questionairre design perspective, but its hard to work with in an analysis.
+
+
+
+```{r, eval=FALSE}
+
+survey|>
+  select(starts_with("race_")) # selecting columns that start with "race_"
+
+
+```
+
+```{r, echo=FALSE}
+
+survey|>
+  select(starts_with("race_"))|>
+  slice_head(n= 10)|>
+  as.matrix()|>
+  data.frame()|>
+  gt()# selecting columns that start with "race_"
+
+
+```
+
+## Multi-response items
+
+The vast majority of respondents only gave one (or zero) answers to this question. So the easiest approach here might be to classify people by their selected race, and then add a "multi-racial" category for everyone else.
+
+```{r}
+race_counts<-survey|>
+  select(starts_with("race_"))|> # selecting columns that start with "race_"
+  apply(X=_, 1, FUN=function(x) sum(!is.na(x)))
+
+table(race_counts)
+  
+```
+
+## Multi-response items
+
+
+```{r}
+
+summarize_race<-function(x){
+  x<-unname(x[which(!is.na(x))]) # get the non-NA values from x
+  if(length(x) == 0){            # If non are selected, then add NA
+    x<-NA
+  }
+  if(length(x)>1){
+    x<-"Multiple races" # the default if R picked multiple races
+  }
+  
+  return(x)
+}
+
+rs<-survey|>
+  select(starts_with("race_"))|> # selecting columns that start with "race_"
+  apply(X=_, 1, FUN=function(x) summarize_race(x))|> # applying the function to each row
+  unlist()                                           # converting from a list to a vector
+
+survey$summary_race<-rs # add the variable to the data set
+
+
+
+
+
+
+```
+
+
+## Multi-response items
+
+Using `case_when` allows for more fine grained control over complex conditional statements. 
+
+Each argument in `case_when` is evaluated in sequence. `.default` sets the values for any elements that aren't matched by any of the preceding conditions.
+
+## Multi-response items
+
+
+
+```{r}
+race_counts<-survey|>
+  select(starts_with("race_"))|>
+  apply(X=_, 1, FUN=function(x) sum(!is.na(x)))
+
+
+survey<-survey |>
+  mutate(
+    ethnicity_race = case_when(
+      race_counts == 0 ~ NA,
+      ethnicity == "Yes" ~ "Hispanic/Latino",
+      race_counts > 1 ~ "Multiple races, non-Hispanic",
+      !is.na(race_1) ~  "White, non-Hispanic",
+      !is.na(race_2) ~ "Black, non-Hispanic",
+      !is.na(race_4) ~ "Asian, non-Hispanic",
+      .default = "Other, non-Hispanic"
+      
+    )
+  )
+
+var_label(survey$ethnicity_race) <-"Race/Ethnicity summary"
+
+
+```
+
+
+## Multi-response items
+
+
+```{r, echo=FALSE}
+
+survey|>
+  select(summary_race, ethnicity, ethnicity_race)|>
+  arrange(summary_race, ethnicity)|>
+  distinct()
+
+```
+
+
+
+
+### Making indices
+
+
+::::: {.columns}
+::: {.column width="50%"}
+- The survey includes a series of questions about government spending. What if we combine these items into an index of general support for spending?
+:::
+::: {.column width="50%"}
+
+```{r}
+
+survey|>
+  select(starts_with("spendgov_"))
+
+```
+
+
+:::
+:::::
+
+
+
+### Making indices
+
+We'll need to drop the "Not sure" responses and then code the remaining values to numeric variables, then get a sum or average across those rows.
+
+
+::: {.panel-tabset}
+
+#### Option 1
+
+```{r}
+
+levels<-c("Much less",
+          "Moderately less", 
+          "Slightly less", 
+          "About the same",
+          "Slightly more", 
+          "Moderately more")
+
+spendgov_numeric<-survey|>
+  select(starts_with("spendgov_"))|>
+  apply(2, function(x) match(x, levels))
+
+spendgov_mean<-rowMeans(spendgov_numeric, na.rm=T)
+
+```
+
+#### Option 2
+
+```{r}
+spendgov_numeric<-survey|>
+  select(starts_with("spendgov_"))|>
+  mutate(across(.cols = everything() , 
+                .fns=~na_if(.x, "Not sure")|>as.numeric(.x))
+         
+         )
+
+spendgov_mean<-rowMeans(spendgov_numeric, na.rm=T)
+
+```
+
+
+:::
+
+
+## Descriptive Statistics
+
+### Counting missing and complete data
+
+
+```{r}
+
+survey|>
+  count(Finished)
+
+
+
+```
+
+### Missing data
+
+What questions, if any, have a lot of missing responses? In this survey, some items were conditional, so we expect to have a lot of missingness on those, but are there others with a large amount of missing data?
+
+```{r}
+
+colSums(is.na(survey))|>
+  sort(decreasing=T)|>
+  head(n=15)
+
+```
+
+
+### Missing data
+
+We can do the same thing to track the number of people who have lots of missing items. If some respondents skipped most of the questions, you may be better off throwing their data out.
+
+
+```{r}
+
+rowSums(is.na(survey))|>hist(xlab="Number of questions skipped",
+                             main = "Histogram of skipped questions"
+                             )
+
+```
+
+
+
+### Missing data
+
+
+
+
+```{r}
+#| output-location: slide
+table_data<-survey|>
+  count(Finished, ethnicity_race)|>
+  ungroup()|>
+  drop_na()|>
+  group_by(ethnicity_race)|>
+  mutate( 
+    proportion = n/sum(n)
+  )|>
+  ungroup()|>
+  arrange(-n)|>
+  pivot_wider(names_from=Finished, values_from = c(proportion, n))
+
+table_data|>
+  gt()|>
+  fmt_percent(columns = starts_with("proportion"), decimals = 1)|>
+  cols_merge_n_pct(col_n = n_True, col_pct= proportion_True)|>
+  cols_merge_n_pct(col_n = n_False, col_pct= proportion_False)|>
+  cols_label(ethnicity_race = "Race/Ethnicity",
+             proportion_True = "% Complete",
+             proportion_False  = "% Incomplete",
+             n_True= "N Complete",
+             n_False = "N Incomplete"
+             )
+
+```
+
+
+### Missing data
+
+
+```{r}
+
+# can be helpful to label the variables, if you haven't already:
+#var_labels(survey$ethnicity_race) <-"Race/Ethnicity summary"
+
+survey|>
+  tbl_summary(include=ethnicity_race, by=Finished)|>
+  modify_caption("**Incomplete responses by ethnicity/race**")
+
+
+
+```
+
+
+### Describing variables
+
+
+- How many (valid) responses do you have? 
+
+- How are those responses distributed in the data?
+
+
+
+
+## Correlations and alpha
+
+
+### Correlation matrix
+
+```{r}
+
+
+levels<-c("Much less",
+          "Moderately less", 
+          "Slightly less", 
+          "About the same",
+          "Slightly more", 
+          "Moderately more")
+
+spendgov_numeric<-survey|>
+  select(starts_with("spendgov_"))|>
+  apply(2, function(x) match(x, levels))
+
+
+cmat<-spendgov_numeric|>
+  cor(use = 'pairwise.complete.obs')
+
+cmat
+
+
+```
+
+
+
+
+
+### Correlation plots
+
+```{r}
+
+library(ggcorrplot)
+
+ggcorrplot(cmat)
+
+
+
+```
+
+### Correlation plots: recommendations
+
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- We can change the `rownames` and `colnames` of the correlation matrix to a descriptive name (try to be concise, you probably can't fit a full sentence here)
+
+:::
+::: {.column width="50%"}
+```{r}
+names <- c(
+  "Medicare and Medicaid",
+  "Education",
+  "Border Security",
+  "Disease Prevention",
+  "Counterterrorism",
+  "Assistance to poor people",
+  "Aid to Israel",
+  "Environmental protection"
+)
+colnames(cmat) <- names
+rownames(cmat) <-names
+
+ggcorrplot(cmat)
+
+```
+:::
+:::::
+
+
+### Correlation plots: recommendations
+
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- You can also add the actual correlation values to the plot by setting `lab=TRUE`
+
+- And add a title with `+ labs(title = "your title")`
+
+:::
+::: {.column width="50%"}
+```{r}
+names <- c(
+  "Medicare and Medicaid",
+  "Education",
+  "Border Security",
+  "Disease Prevention",
+  "Counterterrorism",
+  "Assistance to poor people",
+  "Aid to Israel",
+  "Environmental protection"
+)
+
+colnames(cmat) <- names
+rownames(cmat) <-names
+
+ggcorrplot(cmat,
+           lab = TRUE,
+           lab_size = 2
+           ) + 
+  labs(title ="Support for increased government spending")
+
+```
+:::
+:::::
+
+
+### Correlation plots: recommendations
+
+- Try adding `hc.order = TRUE` to the `ggcorrplot` command and note what changes. 
+
+- Try changing the color scheme.
+
+- Try anything [from this](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html)
+
+
+### Correlation plots: recommendations
+
+
+::::: {.columns}
+::: {.column width="50%"}
+
+- Some characteristics seem to be negatively correlated here, which could be a red flag.
+
+- This could point to a coding error, or it might suggest that there's some other thing that these items are measuring.
+
+:::
+::: {.column width="50%"}
+```{r, echo=FALSE}
+names <- c(
+  "Medicare and Medicaid",
+  "Education",
+  "Border Security",
+  "Disease Prevention",
+  "Counterterrorism",
+  "Assistance to poor people",
+  "Aid to Israel",
+  "Environmental protection"
+)
+
+colnames(cmat) <- names
+rownames(cmat) <-names
+
+ggcorrplot(cmat,
+           lab = TRUE,
+           lab_size = 2,
+           hc.order = TRUE
+           ) + 
+  labs(title ="Support for increased government spending")
+
+```
+:::
+:::::
+
+### Calculating alpha
+
+We can use the `psych` package to calculate $\alpha$ from a correlation matrix:
+
+```{r}
+# install.packages("psych")
+#?alpha
+library(psych)
+alphas<-psych::alpha(spendgov_numeric)
+
+
+```
+
+### Calculating alpha: components
+
+
+
+```{r}
+
+alphas$total
+
+```
+
+### Calculating alpha: components
+
+The `alpha.drop` table shows the change in alpha values if we were to drop some items:
+
+```{r}
+alphas$alpha.drop
+```
+
+
+### Calculating alpha: components
+
+$\alpha$ is subject to sampling error like any other sample statistic. We can get a 95% confidence interval for the statistic using a variety of methods, but the Feldt method is quick and reported automatically along side the rest of the output here:
+
+
+```{r}
+alphas$feldt
+```
+
+
+### Suggestions
+
+- You may not have your data yet, but you can write your analysis script now and then just re-run it as new data comes in. Be kind to your future self and include plenty of comments so you remember what your code is doing.
+
+- If there's a big issue with your results, you should talk about that in your initial analysis and think about ways you might address the problem.
+
+
+
+
+
+
+
+
+

@@ -6,6 +6,7 @@ library(parameters)
 library(performance)
 library(psych)
 
+
 ## Data -------
 datafile<-'https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/polarization1.rds'
 dat1<-readRDS(url(datafile))

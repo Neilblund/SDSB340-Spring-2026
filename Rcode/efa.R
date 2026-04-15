@@ -276,46 +276,27 @@ gt(loadings_frame, rowname_col = 'Label') |> # use the labels as row names
   fmt_number(decimals = 2)                  # format numeric values
 
 
-### Survey data on government spending
-
-
-survey|>
-  select(starts_with("spendgov_"))
-
-survey<-haven::read_sav(
-  'https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/raw_survey.sav'
-  )|>
-  as_factor()
-
-levels<-c("Much less",
-          "Moderately less", 
-          "Slightly less", 
-          "About the same",
-          "Slightly more", 
-          "Moderately more")
-
-spendgov_numeric<-survey|>
-  select(starts_with("spendgov_"))|>
-  apply(2, function(x) match(x, levels))
-
-spend<-spendgov_numeric|>
-  data.frame()|>
-  drop_na()
 
 
 
-scree(spendgov_numeric)
-
-fa(spendgov_numeric, nfactors = 3)
-
-spendgov_mean<-rowMeans(spendgov_numeric, 
-                        na.rm=T)
-
-
+# Using scaled data in a model
 
 
 datafile<-'https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/polarization2.rds'
 dat2<-readRDS(url(datafile))
+
+model_data<-dat2|>
+  select(o1:m6, ftinparty, ftoutparty, wbias)
+
+scale_data<-dat2|>
+  select(o1:m6)
+
+fmodel<-fa(scale_data, nfactors=3)
+scale_values<-predict(fmodel, scale_data)
+
+lm(wbias ~ scale_values,data=dat2)|>summary()
+
+
 
 
 

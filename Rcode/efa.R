@@ -224,61 +224,6 @@ hist(predicted_scores[,2])
 hist(predicted_scores[,3])
 
 
-### Using the PHQ-9 item depression inventory
-
-loc<-url('https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/depression_scores.rds')
-scores<-readRDS(loc)
-
-score_labels<-sapply(scores, function(x) attr(x, "label"))|>
-  unname()
-
-labels_frame <- data.frame(Variable =  colnames(scores) , 
-                           Label = score_labels)
-
-# Use a scree plot to check the number of potential factors
-
-scree(scores)
-n_factors(scores)
-
-
-# Assess the adequacy for factor analysis using check_factorstructure
-
-performance::check_factorstructure(scores)
-
-
-# Create a correlation matrix and plot it
-
-cmat<-cor(scores)
-ggcorrplot(cmat, lab = TRUE, lab_size = 2)
-
-
-# Run a factor analysis with 2 latent dimensions
-
-
-efa<-fa(scores, 
-        nfactors=2) # exploratory factor analysis with 2 latent factors
-print(efa)
-
-parms<-model_parameters(efa)
-print(parms)
-
-loadings_frame<-model_parameters(efa)|>
-  right_join(labels_frame, by = join_by(Variable==Variable))
-
-
-gt(loadings_frame, rowname_col = 'Label') |> # use the labels as row names
-  cols_hide(c(Variable)) |>          # Hide items and dimension columns
-  data_color(
-    # color code the factor loadings based on their values
-    palette = "PuOr",
-    columns = starts_with("MR"),
-    domain = c(-1, 1)                     
-  ) |>
-  fmt_number(decimals = 2)                  # format numeric values
-
-
-
-
 
 # Using scaled data in a model
 

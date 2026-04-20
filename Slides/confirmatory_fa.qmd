@@ -1,0 +1,795 @@
+---
+title: "Confirmatory Factor Analysis"
+format:
+    revealjs:
+        theme: [blueyellow]
+        html-math-method: katex        
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        smaller: true
+        scrollable: false
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+bibliography: references.bib
+slide-level: 4
+execute:
+  echo: false
+lightbox: true
+---
+
+
+# Confirmatory Factor Analysis
+
+- In [exploratory factor analysis]{.yellow}, we don't have *a priori* expectations about the structure of the loadings. We attempt to infer it from the data.
+
+- In [confirmatory factor analysis]{.yellow}, we define structures and then ask "how well does this fit with what we see in the data?"
+
+
+# Confirmatory Factor Analysis
+
+- In general, the best practice is to use EFA to develop a hypothesis, and then *collect new data* and use confirmatory factor analysis to confirm that your model does a good job of explaining the results. 
+
+- If you have a lot of data, you might also split up a single sample into an "EFA" subset and a "CFA" subset. 
+
+
+## Confirmatory Factor Analysis
+
+PHQ-9 depression inventory:
+
+::::: {.columns}
+::: {.column width="50%"}
+One-dimensional model:
+
+- There's a *single latent dimension* that explains the variance in responses to questions.
+:::
+::: {.column width="50%"}
+
+::: fragment
+Two dimensional model:
+
+- There's a [cognitive-affective]{.yellow} factor that captures more mood-related symptoms (1, 2, 6, 7, 9)
+- And a [somatic factor]{.yellow} that relates more with physical symptoms (3, 4, 5 ,8)
+
+:::
+
+:::
+:::::
+
+
+### One-dimension model
+
+
+```{dot}
+
+digraph CFA_Model {
+    // General Settings
+    rankdir=TB;
+    nodesep=0.5;
+    ranksep=0.5;
+    splines=false;
+    edge [fontsize=0, fontcolor="#FFFFFF00", minlen=1];
+    fontsize=20
+    L1[width=2, height=1, label="Latent Depression"]
+    A [shape=square, fixedsize=false, width=1, height=1, label="item 1"];
+    B [shape=square, fixedsize=false, width=1, height=1, label="item 2"];
+    C [shape=square, fixedsize=false, width=1, height=1, label="item 3"];
+    D [shape=square, fixedsize=false, width=1, height=1, label="item 4"];
+    E [shape=square, fixedsize=false, width=1, height=1, label="item 5"];
+    F [shape=square, fixedsize=false, width=1, height=1, label="item 6"];
+    G [shape=square, fixedsize=false, width=1, height=1, label="item 7"];
+    H [shape=square, fixedsize=false, width=1, height=1, label="item 8"];
+    I [shape=square, fixedsize=false, width=1, height=1, label="item 9"];
+    
+    e1[label="𝑒₁"]
+    e2[label="𝑒₂"]
+    e3[label="𝑒₃"]
+    e4[label="𝑒₄"]
+    e5[label="𝑒₅"]
+    e6[label="𝑒₆"]
+    e7[label="𝑒₇"]
+    e8[label="𝑒₈"]
+    e9[label="𝑒₉"]
+    
+    e1->A[headport=s, tailport=n];
+    e2->B[headport=s, tailport=n];
+    e3->C[headport=s, tailport=n];
+    e4->D[headport=s, tailport=n];
+    e5->E[headport=s, tailport=n];
+    e6->F[headport=s, tailport=n];
+    e7->G[headport=s, tailport=n];
+    e8->H[headport=s, tailport=n];
+    e9->I[headport=s, tailport=n];
+
+    A->e1[style=invis]; 
+    B->e2[style=invis]; 
+    C->e3[style=invis]; 
+    D->e4[style=invis]; 
+    E->e5[style=invis]; 
+    F->e6[style=invis]; 
+    G->e7[style=invis]; 
+    H->e8[style=invis]; 
+    I->e9[style=invis]; 
+
+
+
+    e1->e1[label=10]
+    e2->e2[label=11]
+    e3->e3[label=12]
+    e4->e4[label=13]
+    e5->e5[label=14]
+    e6->e6[label=15]
+    e7->e7[label=16]
+    e8->e8[label=17]
+    e9->e9[label=18]
+    
+    L1->L1[label=1]
+    L1->A[label="=1.0", headport=n, tailport=s]
+    L1->B[label=2,headport=n, tailport=s];
+    L1->C[label=3,headport=n, tailport=s];
+    L1->D[label=4,headport=n, tailport=s];
+    L1->E[label=5,headport=n, tailport=s];
+    L1->F[label=6,headport=n, tailport=s];
+    L1->G[label=7,headport=n, tailport=s];
+    L1->H[label=8,headport=n, tailport=s];
+    L1->I[label=9,headport=n, tailport=s];
+
+    
+
+}
+
+```
+
+### Two-dimension model
+
+In our exploratory factor analysis, we didn't have a theory about what the structure of the factor loadings, so we allows each latent factor to influence every observed item. This made for a really complicated structure.
+
+```{dot}
+digraph CFA_Model {
+    // General Settings
+    rankdir=TB;
+    nodesep=0.5;
+    ranksep=0.5;
+    fontsize=20
+    edge [fontsize=0, fontcolor="#FFFFFF00", minlen=1];
+    L2->L2[label=1]
+
+    L1[width=2, height=1, label="Cognitive/Affective"]
+
+    L2[width=2, height=1, label="Somatic"]
+    A [shape=square, fixedsize=false, width=1, height=1, label="item 1"];
+    B [shape=square, fixedsize=false, width=1, height=1, label="item 2"];
+    C [shape=square, fixedsize=false, width=1, height=1, label="item 3"];
+    D [shape=square, fixedsize=false, width=1, height=1, label="item 4"];
+    E [shape=square, fixedsize=false, width=1, height=1, label="item 5"];
+    F [shape=square, fixedsize=false, width=1, height=1, label="item 6"];
+    G [shape=square, fixedsize=false, width=1, height=1, label="item 7"];
+    H [shape=square, fixedsize=false, width=1, height=1, label="item 8"];
+    I [shape=square, fixedsize=false, width=1, height=1, label="item 9"];
+   // subgraph {
+    //    rank=same;
+     //   A -> B -> C ->D -> E -> F -> G -> H -> I [style=invis];
+     //   }
+    e1[label="𝑒₁"]
+    e2[label="𝑒₂"]
+    e3[label="𝑒₃"]
+    e4[label="𝑒₄"]
+    e5[label="𝑒₅"]
+    e6[label="𝑒₆"]
+    e7[label="𝑒₇"]
+    e8[label="𝑒₈"]
+    e9[label="𝑒₉"]
+    
+    e1->A[headport=s, tailport=n];
+    e2->B[headport=s, tailport=n];
+    e3->C[headport=s, tailport=n];
+    e4->D[headport=s, tailport=n];
+    e5->E[headport=s, tailport=n];
+    e6->F[headport=s, tailport=n];
+    e7->G[headport=s, tailport=n];
+    e8->H[headport=s, tailport=n];
+    e9->I[headport=s, tailport=n];
+
+    A->e1[style=invis]; 
+    B->e2[style=invis]; 
+    C->e3[style=invis]; 
+    D->e4[style=invis]; 
+    E->e5[style=invis]; 
+    F->e6[style=invis]; 
+    G->e7[style=invis]; 
+    H->e8[style=invis]; 
+    I->e9[style=invis]; 
+
+
+
+    e1->e1[label=10]
+    e2->e2[label=11]
+    e3->e3[label=12]
+    e4->e4[label=13]
+    e5->e5[label=14]
+    e6->e6[label=15]
+    e7->e7[label=16]
+    e8->e8[label=17]
+    e9->e9[label=18]
+    
+    L1->L1[label=1]
+    L1->A[label="=1.0", headport=n, tailport=s]
+    L1->B[label=2,headport=n, tailport=s];
+    L1->C[label=3,headport=n, tailport=s];
+    L1->D[label=4,headport=n, tailport=s];
+    L1->E[label=5,headport=n, tailport=s];
+    L1->F[label=6,headport=n, tailport=s];
+    L1->G[label=7,headport=n, tailport=s];
+    L1->H[label=8,headport=n, tailport=s];
+    L1->I[label=9,headport=n, tailport=s];
+    
+     L2->A[label="=1.0", headport=n, tailport=s]
+    L2->B[label=2,headport=n, tailport=s];
+    L2->C[label=3,headport=n, tailport=s];
+    L2->D[label=4,headport=n, tailport=s];
+    L2->E[label=5,headport=n, tailport=s];
+    L2->F[label=6,headport=n, tailport=s];
+    L2->G[label=7,headport=n, tailport=s];
+    L2->H[label=8,headport=n, tailport=s];
+    L2->I[label=9,headport=n, tailport=s];
+  
+
+    L2->L1[minlen=2, headport=n, tailport=n, dir="both"]
+
+    L1->L2[minlen=2, headport=n, tailport=n, dir="both"]
+
+   { rank=same; L1, L2}
+
+    
+
+}
+
+
+```
+
+
+
+### Two-dimension model
+
+But our hypothetical two-dimensional model is more parsimonious: we assume that every item is associated with **only one** of the two latent dimensions.
+
+. . .
+
+```{dot}
+digraph CFA_Model {
+    // General Settings
+    rankdir=TB;
+    nodesep=0.5;
+    ranksep=0.5;
+    fontsize=20
+    edge [fontsize=0, fontcolor="#FFFFFF00", minlen=1];
+    L2->L2[label=1]
+
+    L1[width=2, height=1, label="Cognitive/Affective"]
+
+    L2[width=2, height=1, label="Somatic"]
+    A [shape=square, fixedsize=false, width=1, height=1, label="item 1"];
+    B [shape=square, fixedsize=false, width=1, height=1, label="item 2"];
+    C [shape=square, fixedsize=false, width=1, height=1, label="item 3"];
+    D [shape=square, fixedsize=false, width=1, height=1, label="item 4"];
+    E [shape=square, fixedsize=false, width=1, height=1, label="item 5"];
+    F [shape=square, fixedsize=false, width=1, height=1, label="item 6"];
+    G [shape=square, fixedsize=false, width=1, height=1, label="item 7"];
+    H [shape=square, fixedsize=false, width=1, height=1, label="item 8"];
+    I [shape=square, fixedsize=false, width=1, height=1, label="item 9"];
+   // subgraph {
+    //    rank=same;
+     //   A -> B -> C ->D -> E -> F -> G -> H -> I [style=invis];
+     //   }
+    e1[label="𝑒₁"]
+    e2[label="𝑒₂"]
+    e3[label="𝑒₃"]
+    e4[label="𝑒₄"]
+    e5[label="𝑒₅"]
+    e6[label="𝑒₆"]
+    e7[label="𝑒₇"]
+    e8[label="𝑒₈"]
+    e9[label="𝑒₉"]
+    
+    e1->A[headport=s, tailport=n];
+    e2->B[headport=s, tailport=n];
+    e3->C[headport=s, tailport=n];
+    e4->D[headport=s, tailport=n];
+    e5->E[headport=s, tailport=n];
+    e6->F[headport=s, tailport=n];
+    e7->G[headport=s, tailport=n];
+    e8->H[headport=s, tailport=n];
+    e9->I[headport=s, tailport=n];
+
+    A->e1[style=invis]; 
+    B->e2[style=invis]; 
+    C->e3[style=invis]; 
+    D->e4[style=invis]; 
+    E->e5[style=invis]; 
+    F->e6[style=invis]; 
+    G->e7[style=invis]; 
+    H->e8[style=invis]; 
+    I->e9[style=invis]; 
+
+
+
+    e1->e1[label=10]
+    e2->e2[label=11]
+    e3->e3[label=12]
+    e4->e4[label=13]
+    e5->e5[label=14]
+    e6->e6[label=15]
+    e7->e7[label=16]
+    e8->e8[label=17]
+    e9->e9[label=18]
+    
+    L1->L1[label=1]
+    L1->A[label="=1.0", headport=n, tailport=s]
+    L1->B[label=2,headport=n, tailport=s];
+   // L1->C[label=3,headport=n, tailport=s];
+  //  L1->D[label=4,headport=n, tailport=s];
+    //L1->E[label=5,headport=n, tailport=s];
+    L1->F[label=6,headport=n, tailport=s];
+    L1->G[label=7,headport=n, tailport=s];
+    //L1->H[label=8,headport=n, tailport=s];
+    L1->I[label=9,headport=n, tailport=s];
+    
+//    L2->A[label="=1.0", headport=n, tailport=s]
+  //  L2->B[label=2,headport=n, tailport=s];
+    L2->C[label=3,headport=n, tailport=s];
+    L2->D[label=4,headport=n, tailport=s];
+    L2->E[label=5,headport=n, tailport=s];
+//    L2->F[label=6,headport=n, tailport=s];
+ //   L2->G[label=7,headport=n, tailport=s];
+    L2->H[label=8,headport=n, tailport=s];
+  //  L2->I[label=9,headport=n, tailport=s];
+
+    L2->L1[minlen=2, headport=n, tailport=n, dir="both"]
+
+    L1->L2[minlen=2, headport=n, tailport=n, dir="both"]
+
+   { rank=same; L1, L2}
+
+    
+
+}
+
+
+```
+
+
+
+
+
+## Degrees of freedom
+
+- Degrees of freedom are an important constraint on the amount of complexity we can expect to model.
+
+- Degrees of freedom are a function of the number of independent sources of information (items in the survey instrument) and the number of parameters we want to estimate (loadings and variances)
+
+
+### Degrees of freedom
+
+
+
+- [Just-Identified]{.yellow}: number of free parameters specified in models is equal to the number of independent sources of information
+
+- [Over-identified]{.yellow} (df>0): number of free parameters is less than the number of independent sources of information.
+
+- [Under-identified]{.yellow} (df<0): number of free parameters is greater than the number of independent sources of information
+
+- We need models that are [over-identified]{.yellow} in order to get valid measures of model fit.
+
+
+### Degrees of freedom
+
+Sources of information:
+
+
+$$
+\begin{align*}
+&\frac{p(p+1)}{2}\\
+p &= \text{The number of observed variables (questions in the survey instrument)}
+\end{align*}
+$$
+
+. . .
+
+If I have a 9-item questionnaire, then I have $\frac{9(9+1)}{2} = 45$ sources of information. How many free parameters do I have?
+
+
+### Free parameters
+
+- "Free parameters" are the things we need to estimate in our model.
+
+- If we're looking at a path diagram, the free parameters are the loadings and the covariances/variances.
+
+- In CFA, we'll typically constrain one item to have a loading of 1.
+
+
+### One-dimension model
+
+
+```{dot}
+
+digraph CFA_Model {
+    // General Settings
+    rankdir=TB;
+    nodesep=0.5;
+    ranksep=0.5;
+    edge [fontsize=20, fontcolor="#228B22", minlen=1];
+    fontsize=20
+    L1[width=2, height=1, label="Latent Depression"]
+    A [shape=square, fixedsize=false, width=1, height=1, label="item 1"];
+    B [shape=square, fixedsize=false, width=1, height=1, label="item 2"];
+    C [shape=square, fixedsize=false, width=1, height=1, label="item 3"];
+    D [shape=square, fixedsize=false, width=1, height=1, label="item 4"];
+    E [shape=square, fixedsize=false, width=1, height=1, label="item 5"];
+    F [shape=square, fixedsize=false, width=1, height=1, label="item 6"];
+    G [shape=square, fixedsize=false, width=1, height=1, label="item 7"];
+    H [shape=square, fixedsize=false, width=1, height=1, label="item 8"];
+    I [shape=square, fixedsize=false, width=1, height=1, label="item 9"];
+    
+    e1[label="𝑒₁"]
+    e2[label="𝑒₂"]
+    e3[label="𝑒₃"]
+    e4[label="𝑒₄"]
+    e5[label="𝑒₅"]
+    e6[label="𝑒₆"]
+    e7[label="𝑒₇"]
+    e8[label="𝑒₈"]
+    e9[label="𝑒₉"]
+    
+    e1->A[headport=s, tailport=n];
+    e2->B[headport=s, tailport=n];
+    e3->C[headport=s, tailport=n];
+    e4->D[headport=s, tailport=n];
+    e5->E[headport=s, tailport=n];
+    e6->F[headport=s, tailport=n];
+    e7->G[headport=s, tailport=n];
+    e8->H[headport=s, tailport=n];
+    e9->I[headport=s, tailport=n];
+
+    A->e1[style=invis]; 
+    B->e2[style=invis]; 
+    C->e3[style=invis]; 
+    D->e4[style=invis]; 
+    E->e5[style=invis]; 
+    F->e6[style=invis]; 
+    G->e7[style=invis]; 
+    H->e8[style=invis]; 
+    I->e9[style=invis]; 
+
+
+
+    e1->e1[label=10]
+    e2->e2[label=11]
+    e3->e3[label=12]
+    e4->e4[label=13]
+    e5->e5[label=14]
+    e6->e6[label=15]
+    e7->e7[label=16]
+    e8->e8[label=17]
+    e9->e9[label=18]
+    
+    L1->L1[label=1]
+    L1->A[label="Constrained to 1.0", headport=n, tailport=s]
+    L1->B[label=2,headport=n, tailport=s];
+    L1->C[label=3,headport=n, tailport=s];
+    L1->D[label=4,headport=n, tailport=s];
+    L1->E[label=5,headport=n, tailport=s];
+    L1->F[label=6,headport=n, tailport=s];
+    L1->G[label=7,headport=n, tailport=s];
+    L1->H[label=8,headport=n, tailport=s];
+    L1->I[label=9,headport=n, tailport=s];
+
+    
+
+}
+
+```
+
+. . .
+
+
+Our degrees of freedom would be $45 - 18 = 27$, so we have an [over-identified]{.yellow} model.
+
+
+### Two-dimension model
+
+How does this change for our 2-dimensional model?
+
+### Two-dimension model
+
+
+
+```{dot}
+digraph CFA_Model {
+    // General Settings
+    rankdir=TB;
+    nodesep=0.5;
+    ranksep=0.5;
+    fontsize=20
+    edge [fontsize=20, fontcolor="#228B22", minlen=1];
+
+    L1[width=2, height=1, label="Cognitive/Affective"]
+
+    L2[width=2, height=1, label="Somatic"]
+    A [shape=square, fixedsize=false, width=1, height=1, label="item 1"];
+    B [shape=square, fixedsize=false, width=1, height=1, label="item 2"];
+    C [shape=square, fixedsize=false, width=1, height=1, label="item 3"];
+    D [shape=square, fixedsize=false, width=1, height=1, label="item 4"];
+    E [shape=square, fixedsize=false, width=1, height=1, label="item 5"];
+    F [shape=square, fixedsize=false, width=1, height=1, label="item 6"];
+    G [shape=square, fixedsize=false, width=1, height=1, label="item 7"];
+    H [shape=square, fixedsize=false, width=1, height=1, label="item 8"];
+    I [shape=square, fixedsize=false, width=1, height=1, label="item 9"];
+   // subgraph {
+    //    rank=same;
+     //   A -> B -> C ->D -> E -> F -> G -> H -> I [style=invis];
+     //   }
+    e1[label="𝑒₁"]
+    e2[label="𝑒₂"]
+    e3[label="𝑒₃"]
+    e4[label="𝑒₄"]
+    e5[label="𝑒₅"]
+    e6[label="𝑒₆"]
+    e7[label="𝑒₇"]
+    e8[label="𝑒₈"]
+    e9[label="𝑒₉"]
+    
+    e1->A[headport=s, tailport=n];
+    e2->B[headport=s, tailport=n];
+    e3->C[headport=s, tailport=n];
+    e4->D[headport=s, tailport=n];
+    e5->E[headport=s, tailport=n];
+    e6->F[headport=s, tailport=n];
+    e7->G[headport=s, tailport=n];
+    e8->H[headport=s, tailport=n];
+    e9->I[headport=s, tailport=n];
+
+    A->e1[style=invis]; 
+    B->e2[style=invis]; 
+    C->e3[style=invis]; 
+    D->e4[style=invis]; 
+    E->e5[style=invis]; 
+    F->e6[style=invis]; 
+    G->e7[style=invis]; 
+    H->e8[style=invis]; 
+    I->e9[style=invis]; 
+    L1->L1[label=2]
+    L2->L2[label=3]
+
+    L1->A[label="Constrained to 1.0", headport=n, tailport=s]
+    L1->B[label=4,headport=n, tailport=s];
+   // L1->C[label=3,headport=n, tailport=s];
+  //  L1->D[label=4,headport=n, tailport=s];
+    //L1->E[label=5,headport=n, tailport=s];
+    L1->F[label=5,headport=n, tailport=s];
+    L1->G[label=6,headport=n, tailport=s];
+    //L1->H[label=8,headport=n, tailport=s];
+    L1->I[label=7,headport=n, tailport=s];
+    
+//    L2->A[label="=1.0", headport=n, tailport=s]
+  //  L2->B[label=2,headport=n, tailport=s];
+    L2->C[label="Constrained to 1.0",headport=n, tailport=s];
+    L2->D[label=8,headport=n, tailport=s];
+    L2->E[label=9,headport=n, tailport=s];
+//    L2->F[label=6,headport=n, tailport=s];
+ //   L2->G[label=7,headport=n, tailport=s];
+    L2->H[label=10,headport=n, tailport=s];
+  //  L2->I[label=9,headport=n, tailport=s];
+  
+
+    L1->L2[minlen=2, headport=n, tailport=n, dir="both", splines="false", label="1"]
+    
+    e1->e1[label=11]
+    e2->e2[label=12]
+    e3->e3[label=13]
+    e4->e4[label=14]
+    e5->e5[label=15]
+    e6->e6[label=16]
+    e7->e7[label=17]
+    e8->e8[label=19]
+    e9->e9[label=19]
+    
+
+   { rank=same; L1, L2}
+
+    
+
+}
+
+```
+
+
+. . .
+
+
+$45 - 19 = 26$ degrees of freedom. We're still in good shape here.
+
+
+
+## Measures of model fit
+
+- Just like in exploratory factor analysis, we have a covariance matrix that we observe in our data, and a covariance matrix that's implied by our model. When fitting a model, we try to find a set of model parameters that best fits our observed covariance matrix (but we'll never do this perfectly)
+
+- All measures of model fit are ultimately based on some metric comparing the observed vs. the one estimated by the model.
+
+
+### Measures of model fit
+
+- [Absolute fit indices]{.yellow} test how well the model could reproduce the observed data.
+
+- [Relative fit indices]{.yellow} compare a model to a simplified "null" or "baseline" model.
+
+
+### Measures of model fit: MLE
+
+- In exploratory factor analysis, we used a method based on minimizing the sum of squared errors to find a good model. However, its more common in confirmatory factor analyses for these models to be fitted using maximum likelihood method estimation (MLE)
+
+- In short: MLE assumes that the errors for the model follow a multivariate normal distribution, and then finds a set of parameters $\theta$ that maximizes the likelihood of observing the data in our sample.
+
+. . .
+
+
+$$
+\begin{align*}
+\mathcal{L} =& \Pr(\text{data} \mid \text{model}) = \Pr(S \mid \Sigma(\theta))\\
+S &= \text{The observed covariance matrix}\\
+\Sigma &= \text{The model implied covariance matrix}\\
+\theta &= \text{Model parameters (loadings and variances)}
+\end{align*}
+$$
+
+### Measures of model fit: MLE
+
+Using the power of calculus, we end up with a fitting function $F_{ML}$ that can be minimized to find the set of theta values that best fit the data: 
+
+$$
+\begin{align*}
+F_{ML} &= \log|\Sigma(\theta)| - \log|S| + \text{tr}(S\Sigma_\theta^{-1}) - p\\
+S &= \text{The observed covariance matrix}\\
+\Sigma &= \text{The model implied covariance matrix}\\
+\theta &= \text{Model parameters (loadings and variances)} \\
+\end{align*}
+$$
+
+
+...And this fitting function can be used to calculate a $X^2$ statistic that reflects how well the model fits the data.
+
+$$
+\begin{align*}
+\chi^2&= (N-1) \times F_{ML} \\
+\end{align*}
+$$
+(In general, smaller values will indicate better fit here.)
+
+
+### Measures of model fit: $\chi^2$
+
+
+- $\chi^2$ test is an absolute fit index based on the $\chi^2$ distribution. The null hypothesis is that the model fits perfectly (failing to reject the null means the model does a good job of explaining the variance).
+
+-  Note that this is the reverse of what we typically look for when assessing significance. $p>.05$ is a good sign for model fit.
+
+- $\chi^2$ indices can be inflated when samples are large, or when models are complex, so other measures are often preferred when assessing fit. However, it's important for calculating a lot of other indices.
+
+
+### Measures of model fit: RMSEA
+
+$$
+RMSEA = \sqrt{\frac{\chi^2-\text{df}}{({N-1})\text{df}}}
+$$
+
+- Root Mean Square Error Approximation: is a measure of absolute fit that's normalized by the sample size and degrees of freedom. 
+
+- Lower values indicate a better fit. Values below .05 are considered "good" by convention.
+
+### Measures of model fit: CFI
+
+$$
+\begin{align*}
+CFI &= 1- \frac{\text{max}[\chi^2_\text{alt. model}- \text{df}_\text{alt.model},0]}{\text{max}[\chi^2_\text{alt. model} - \text{df}_\text{alt. model}, \chi^2_\text{null model}- \text{df}_\text{null model}, 0]}\\
+\end{align*}
+$$
+
+
+
+- Comparative Fit Index: a comparative index based on comparing "null model" where variables are assumed to be totally uncorrelated to the model specified by our hypothesis (the "alternative model")
+
+- Ranges from 0 to 1, with values close to 1 indicating good fit.
+
+- Values >.95 are considered ideal.
+
+
+### Measures of model fit: TLI
+
+$$
+TFI = \frac{(\chi^2_\text{null model}/\text{df}_\text{null model}) - (\chi^2_\text{alt. model}/\text{df}_\text{alt. model})}{(\chi^2_\text{null model}/\text{df}_\text{null model}) - 1}
+$$
+
+
+- Tucker-Lewis Index: is also an index based on comparing a model against a "null model", but with an additional penalty for complexity. All else equal, a model with fewer parameters will have a lower TLI than a model with more.
+
+- Usually ranges from 0 to 1, but can have values greater than 1 or less than 0. Higher values indicate better fit.
+
+- Values >.90 are acceptable, >.95 are considered ideal.
+
+
+
+### Measures of model fit: Information values
+
+
+
+- Bayesian Information Criteria: $\chi^2 - 2\text{df}$
+
+- Akaike (Ah-kah-ee-keh) Information Criteria: $\chi^2 - log(N)\text{df}$
+
+- Smaller values are considered better, and both of these penalize complex models, albeit at slightly different rates.
+
+- Information criteria are only really meaningful when comparing *between* models, but when comparing two models with the same data, lower values indicate better fit.
+
+
+## Confirmatory Factor Analysis example
+
+
+
+### Measures of model fit
+
+| Metric           | Meaning                                                                                   | Conventional cutoff                                                                                     |
+|------------------|-------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| $\chi^2$ p.value | A statistically insignificant value indicates acceptable fit.                             | $\geq .05$                                                                                              |
+| CFI              | Higher values indicate better fit                                                         | Generally $\geq .95$ or $\geq .90$                                                                      |
+| TFI              | Higher values indicate better fit. Penalizes complex models.                              | Generally $\geq .95$ or $\geq .90$                                                                      |
+| RMSEA            | Lower values indicate better fit. Penalizes complex models.                               | Usually $\leq 0.06$ or $0.08$ are considered acceptable                                                 |
+| BIC/AIC          | Lower values indicate better fit. Penalizes complex models (BIC is usually more stringent) | None! (lower values = better fit, but the numbers themselves are only meaningful when comparing models) |
+
+
+
+
+## Model Comparison
+
+- We find that either proposed model does reasonably well at fitting the data, but... so what? The more important research question is "which proposed structure is better?"
+
+
+
+### Model Comparison: Nested Models
+
+- If models are nested it means that the simpler model can be attained by fixing some parameters to zero.
+
+- For instance, I could turn the two-factor model of depression into the one-factor model if I fixed the correlation between the somatic and cognitive affective dimensions to = 1 (if they don't vary independently, then that's essentially the same as just having latent factor)
+
+### Model Comparison: Likelihood Ratio Test
+
+For nested models, we can use a likelihood ratio test.
+
+$$
+LR = -2(\text{ln } L_\text{simple} - \text{ln } L_\text{complex})
+$$
+The ratio of the two models follows a $\chi^2$ distribution with degrees of freedom = to the difference in the number of parameters between the two models.
+
+
+
+### Model Comparison: Non-nested models
+
+If two models aren't nested, they can still be compared using their information criteria as long as they use the same data.
+
+
+### Model Comparison example
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,1125 @@
+---
+title: "Visualization"
+format:
+    revealjs:
+        theme: [blueyellow]
+        html-math-method: katex        
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        smaller: true
+        scrollable: false
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+bibliography: references.bib
+slide-level: 4
+execute:
+  echo: true
+  output-location: column
+lightbox: true
+---
+
+```{r}
+library(tidyverse)
+library(ggstats)
+
+atus_fmt<-readRDS(here::here('Data/atus.rds'))
+
+
+```
+
+## Example data
+
+::::: columns
+::: {.column width="50%"}
+-   Data from the 2024 [American Time Use Survey](https://www.bls.gov/tus/)
+
+-   Conducted annually since 2003.
+
+-   Respondents answer questions about how much of their time is spent performing various activities (childcare, work, school, recreation etc.)
+
+-   I've done some reformatting and aggregation to simplify some analyses.
+:::
+
+::: {.column width="50%"}
+```{r}
+#| echo: true
+library(tidyverse)
+library(ggstats)
+
+file<-url("https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/atus.rds")
+atus_fmt<-readRDS(file)
+
+
+```
+:::
+:::::
+
+## Visualization
+
+### Bad Visuals
+
+![](images/fig-ch-01-holmes-monstrous-only.png){width="100%"}
+
+### Parts of a plot
+
+:::::: columns
+:::: {.column width="50%"}
+Required components:
+
+::: incremental
+1.  Data and mapping: We need to choose what elements we'll be visualizing and how they map onto different parts of the plot (what goes on the x and y axis? If we're color coding, what variables determine colors? Or shapes?)
+
+2.  Layers: the visible representations of the data. The most important being geometries (bar, point, line etc.)
+
+3.  Scales: the mapping from data units to distances, colors, etc.
+
+4.  The remaining elements can be modified, but they're often left at default values (ggplot assumes you want carteesian coordinates unless you say otherwise, for instance)
+:::
+::::
+
+::: {.column width="50%"}
+![](images/ggplot_parts.png)
+:::
+::::::
+
+### Dimensionality
+
+-   Data is multi-dimensional, but visuals are 2D.
+
+-   A core challenge for good visualization is elegantly handling this dimensional mismatch by:
+
+    -   simplifying data
+    -   color/shape/symbol encoding
+    -   faceting
+
+## ggplot
+
+-   Base R already has pretty good support for data visualization, but `ggplot2` is usually easier to pick up and requires less code to do cool stuff.
+
+### ggplot
+
+You'll always start with a call to ggplot
+
+:::::: columns
+::: {.column width="50%"}
+On it's own, this just makes empty space.
+
+```{r}
+
+ggplot()
+
+```
+:::
+
+:::: {.column width="50%"}
+::: {.fragment .fade-in-then-out}
+We can add data and aesthetics to control what goes into the space: axes, colors, positions etc.
+
+```{r}
+
+ggplot(data  = atus_fmt, aes(x=t020201))
+
+# equivalent with pipe: 
+#atus_fmt|>
+#  ggplot(aes(x=t020201))
+
+```
+:::
+::::
+::::::
+
+### ggplot geometry
+
+-   You'll use the `+` to add more layers to a ggplot object.
+-   Layers with the prefix `geom_` will give us different plot types: `geom_point()` (scatterplots), `geom_boxplot()` (boxplots), `geom_bar()` (barplots) etc.
+
+### ggplot geometry
+
+You'll use the `+` to add one or more layers to a ggplot object. Layers with the `geom_` prefix will produce different kinds of plots:
+
+:::::: r-stack
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+ggplot(data  = atus_fmt, aes(x=chores)) + 
+  geom_histogram()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+ggplot(atus_fmt, aes(x=GTMETSTA)) + geom_bar()
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+
+ggplot(data  = atus_fmt, aes(x=chores)) + 
+  geom_density() +  # kernel density
+  geom_rug() # rug plot
+
+
+
+```
+:::
+::::::
+
+### ggplot scales
+
+We can also change the x or y scaling from the default using `scale_` functions
+
+:::::: r-stack
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+ggplot(data  = atus_fmt, aes(x=chores)) + 
+  geom_histogram() 
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+ggplot(data  = atus_fmt, aes(x=chores)) + 
+  geom_histogram() + 
+  scale_x_log10() # logarithmic scale
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+label_hours_minutes <- function(x) {
+  h <- floor(x / 60)
+  m <- round(x %% 60)
+  
+  # Logic to create strings like "1h 30m", "45m", or "2h"
+  labels <- ifelse(h > 0, 
+                   paste0(h, "h", ifelse(m > 0, paste0(" ", m, "m"), "")),
+                   paste0(m, "m"))
+  
+  # Ensure NAs remain NAs
+  labels[is.na(x)] <- NA
+  return(labels)
+}
+
+ggplot(data  = atus_fmt, aes(x=chores)) + 
+  geom_histogram() + 
+  # using a custom label function to show hours and minutes
+  scale_x_continuous(labels = label_hours_minutes)
+
+
+
+```
+:::
+::::::
+
+### ggplot labels
+
+You can use `labs` to add a title and/or modify the x and y axis labels:
+
+::::: r-stack
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+
+
+
+ggplot(data  = atus_fmt, aes(x=chores)) + 
+  geom_histogram() +
+  labs(title = "Time spent doing household chores",
+       caption = "Source: American Time Use Survey, 2024",
+       x = "Time spent on chores",
+       y = "Count"
+  )
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+
+ggplot(data  = atus_fmt, aes(x=chores)) + 
+  geom_histogram() +
+  labs(title = "Time spent doing household chores",
+       caption = "Source: American Time Use Survey, 2024",
+       x = "Time spent on chores",
+       y = "Count"
+  )
+
+```
+:::
+:::::
+
+### ggplot themes
+
+Or modify the [theme](https://ggplot2.tidyverse.org/reference/ggtheme.html)
+
+:::::: r-stack
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+ggplot(data  = atus_fmt, aes(x=chores)) + 
+  geom_histogram() +
+  labs(title = "Time spent doing household chores",
+       caption = "Source: American Time Use Survey, 2024",
+       x = "Time spent on chores",
+       y = "Count"
+  )
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+ggplot(data  = atus_fmt, aes(x=chores)) + 
+  geom_histogram() +
+  labs(title = "Time spent doing household chores",
+       caption = "Source: American Time Use Survey, 2024",
+       x = "Time spent on chores",
+       y = "Count"
+  )+ 
+  theme_bw()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+
+ggplot(data  = atus_fmt, aes(x=chores)) + 
+  geom_histogram() +
+  labs(title = "Time spent doing household chores",
+       caption = "Source: American Time Use Survey, 2024",
+       x = "Time spent on chores",
+       y = "Count"
+  ) +
+  theme_classic()
+
+```
+:::
+::::::
+
+## Try it out
+
+```{r}
+
+library(tidyverse)
+
+file<-url("https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/atus.rds")
+atus_fmt<-readRDS(file)
+label_hours_minutes <- function(x) {
+  h <- floor(x / 60)
+  m <- round(x %% 60)
+  
+  # Logic to create strings like "1h 30m", "45m", or "2h"
+  labels <- ifelse(h > 0, 
+                   paste0(h, "h", ifelse(m > 0, paste0(" ", m, "m"), "")),
+                   paste0(m, "m"))
+  
+  # Ensure NAs remain NAs
+  labels[is.na(x)] <- NA
+  return(labels)
+}
+
+```
+
+1.  Create a histogram to show time spent on one of the other activities: `sleep`, `work`, `education`, `travel`, `religious_activities` or `sports_recreation`
+
+2.  Add x and y axis labels, a title, subtitle, and caption.
+
+3.  Pick a [theme](https://ggplot2.tidyverse.org/reference/ggtheme.html) and apply it.
+
+4.  Use the `label_hours_minutes` function to format the x-axis.
+
+5.  Assign the result to an object and use the [`ggsave`](https://ggplot2.tidyverse.org/reference/ggsave.html) function to export it to a file.
+
+## Plotting data multiple dimensions
+
+### Dimensions and color-coding
+
+To capture an additional dimension, you can put another variable on the y-axis
+
+```{r}
+#| output-location: column
+
+ggplot(data  = atus_fmt, aes(x = chores, y = TUDIARYDAY))  +
+  geom_boxplot() +
+  labs(
+    title = "Time spent on household chores",
+    subtitle = "(by day of the week)",
+    x = "Minutes spent on chores",
+    y = "Day",
+    caption = "Source: American Time Use Survey, 2024",
+  ) +
+  theme_classic()
+
+```
+
+### Dimensions and color-coding
+
+For additional dimensions beyond 2, you can use `color` or `fill`, `shape`, or `size` in the aesthetics to distinguish groups.
+
+::::::: r-stack
+```{r}
+#| output-location: column
+
+ggplot(data  = atus_fmt, aes(x = chores, y = TUDIARYDAY))  +
+  geom_boxplot() +
+  labs(
+    title = "Time spent on household chores",
+    subtitle = "(by day of the week)",
+    x = "Minutes spent on chores",
+    y = "Day",
+    caption = "Source: American Time Use Survey, 2024",
+  ) +
+  theme_classic()
+
+```
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+
+ggplot(data  = atus_fmt, aes(x = chores,
+                             y = TUDIARYDAY, 
+                             fill = TESEX,
+                             
+                             ))  +
+  geom_boxplot() +
+  labs(
+    title = "Time spent on household chores",
+    subtitle = "(by day of the week and sex)",
+    x = "Minutes spent on chores",
+    y = "Day",
+    caption = "Source: American Time Use Survey, 2024",
+  )  +
+  theme_classic()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+ggplot(data  = atus_fmt, aes(y= factor(TRCHILDNUM), fill=TESEX, x = chores))  +
+  geom_boxplot() +
+  labs(
+    title = "Time spent on household chores",
+    subtitle = "(by day, number of children, and sex)",
+    x = "Minutes spent on chores",
+    y = "Number of children",
+    fill = "Sex",
+    caption = "Source: American Time Use Survey, 2024",
+  ) +
+  theme_classic()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+ggplot(data  = atus_fmt, aes(y=TUDIARYDAY, color=TESEX, x = chores))  +
+  geom_point(pch = 21, position = position_jitterdodge()) +
+  labs(
+    title = "Time spent on household chores",
+    subtitle = "(by day number of children and sex)",
+    x = "Minutes spent on chores",
+    y = "Number of children",
+    color = "Sex",
+    caption = "Source: American Time Use Survey, 2024",
+  ) +
+  theme_classic()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+ggplot(data  = atus_fmt, aes(y=TUDIARYDAY, color=TESEX, x = chores))  +
+  geom_point(pch = 21, position = position_jitterdodge()) +
+  labs(
+    title = "Time spent on household chores",
+    subtitle = "(by day, number of children, and sex)",
+    x = "Minutes spent on chores",
+    y = "Number of children",
+    color = "Sex",
+    caption = "Source: American Time Use Survey, 2024",
+  ) +
+  theme_classic() +
+  scale_color_manual(values = c("orange", "lightblue"))
+
+```
+:::
+:::::::
+
+
+## Try it out
+
+1. Use boxplots or jittered points to examine the relationship between `TESEX` (sex) and `hh_caretaking` (caring for household members)
+
+2. Use color coding/fills to visualize this relationship by `GTMETSTA` (metropolitan status)
+
+3. Try adding a custom color palette using `scale_fill_manual()` or `scale_color_manual()` (you'll need to pick three color values)
+
+
+### Aggregation
+
+In a lot of cases, you'll need to do some aggregation in order to get a meaningful visual summary of some relationship. The `stat_summary` functions can automatically aggregate by group:
+
+```{r}
+#| output-location: column
+ggplot(atus_fmt, aes(x=decade, y = chores, group=1)) +
+  stat_summary(fun = mean, geom = "line", color = "black") +
+  theme_bw() +
+  labs(
+    title = "Time spent on chores",
+    subtitle = "By age",
+    x = "Age",
+    y = "Minutes",
+    caption = "ATUS: 2024"
+  )  + 
+  theme_classic()
+
+
+```
+
+### Aggregation
+
+However, this is a little inflexible, so in many cases it makes sense to do the aggregation step separately.
+
+::::: r-stack
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+atus_agg<-atus_fmt|>
+  group_by(decade)|>
+  summarise(
+            wtd_chores = weighted.mean(x=chores,  
+                                       w =TUFINLWGT,
+                                       na.rm=T)
+            
+            )
+
+ggplot(atus_agg, aes(x=decade, y = wtd_chores, group=1)) +
+  geom_line(lwd=1)+
+  theme_bw() +
+  labs(
+    title = "Average time spent on chores (weighted)",
+    subtitle = "By age",
+    x = "Age",
+    y = "Minutes",
+    caption = "ATUS: 2024"
+  ) +
+  theme_classic()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+atus_agg<-atus_fmt|>
+  group_by(decade, TESEX)|>
+  summarise(
+            wtd_chores = weighted.mean(x=chores, 
+                                       w =TUFINLWGT, 
+                                       na.rm=T)
+            )
+
+ggplot(atus_agg, aes(x=decade, y = wtd_chores, 
+                     color=TESEX, 
+                     group=TESEX)) +
+  geom_line(lwd=1)+
+  theme_bw() +
+  labs(
+    title = "Average time spent on chores (weighted)",
+    subtitle = "(by age and sex)",
+    x = "Age",
+    y = "Minutes",
+    color= 'Sex',
+    caption = "ATUS: 2024"
+  ) +
+  theme_classic() 
+
+```
+:::
+:::::
+
+### Faceting
+
+Alternatively, faceting with `facet_wrap` or `facet_grid` splits your data into multiple subplots (panels) based on one or more categorical variables.
+
+::::: r-stack
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+ggplot(data  = atus_fmt, aes(x = chores,
+                             y = TUDIARYDAY, 
+                             fill = TESEX,
+                             shape =TESEX
+                             ))  +
+   
+  geom_boxplot(outliers=FALSE) + # removing outliers
+  labs(
+     title = "Time spent on household chores",
+    subtitle = "(by sex, day, and cohabitation)",
+    x = "Minutes spent on chores",
+    y = "Day of the week",
+    caption = "ATUS: 2024",
+    fill = "Sex", # Adjusting color legend title
+    shape = "Sex" # Adjusting shape legend title
+  ) +
+  theme_bw() +
+  facet_wrap(~TRSPPRES)
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+ggplot(data  = atus_fmt, aes(x = chores,
+                             y = TUDIARYDAY, 
+                             fill = TESEX))  +
+  geom_boxplot(outliers=FALSE) +
+  labs(
+ title = "Time spent on household chores",    
+ subtitle = "(by sex, day, cohabitation, and metro status)",
+    x = "Minutes spent on chores",
+    y = "Day of the week",
+    caption = "ATUS: 2024",
+    fill = "Sex" # Adjusting the legend title
+  ) +
+  theme_classic() +
+  # row var ~ column var
+  facet_grid(GTMETSTA ~TRSPPRES)
+
+```
+:::
+:::::
+
+## Try it out
+
+- Make a faceted plot showing the relationship between time spent volunteering by day and sex.
+
+### Long data
+
+-   ggplot works best with long format data. If we want to visualize several variables at once, you'll often need to do some additional data wrangling.
+
+### Long data
+
+:::::: r-stack
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+# store the variable labels in a list
+labels<-lapply(atus_fmt, function(x) attr(x, "label"))|>
+  unlist()
+# make long format data
+time_long<-atus_fmt|>
+  # selecting only the weight + columns related to activities
+  select(sleep:travel, TUFINLWGT)|>
+  # pivoting everything except the weights
+  pivot_longer(cols=-TUFINLWGT)|>
+  # adding the labels as a new column
+  mutate(label = labels[name])
+
+# viewing the results
+time_long|>
+  slice_head(n=10)
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+time_aggregate<-time_long|>
+  group_by(label)|>
+  summarize(avg = weighted.mean(value, w=TUFINLWGT))
+ggplot(time_aggregate, aes(x = avg, y=label)) + geom_point()
+
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+time_aggregate<-time_long|>
+  group_by(label)|>
+  summarize(avg = weighted.mean(value, w=TUFINLWGT))|>
+  mutate(label = reorder(label, avg))
+
+ggplot(time_aggregate, aes(x = avg, y=label)) +
+  geom_point() +
+  labs(
+ title = "Average time spent on different activities",    
+    x = "Time spent",
+    y = "",
+    caption = "ATUS: 2024"  ) +
+  scale_x_continuous(labels = label_hours_minutes) +
+  theme_bw()
+
+
+
+```
+:::
+::::::
+
+### Faceting and scaling
+
+Big differences in the scaling can make it difficult to identify *relative* changes within each group. Faceting with "free" axes can be a useful way to highlight a change at the expense of distorting absolute values.
+
+### Faceting and scaling
+
+::::: r-stack
+::: {.fragment .fade-in-then-out}
+This plot shows hours spent on different activities by age using the same scale for each facet.
+
+```{r}
+#| code-fold: true
+
+
+time_long<-atus_fmt|>
+  mutate(weekend = !TUDIARYDAY %in% c("Saturday", "Sunday"))|>
+  select(sleep:travel, TEAGE, TUFINLWGT, weekend)|>
+  pivot_longer(cols=-c(TUFINLWGT, weekend, TEAGE))|>
+  mutate(label = labels[name])
+
+time_aggregate<-time_long|>
+  group_by(label, weekend, TEAGE)|>
+  summarize(avg = weighted.mean(value, w=TUFINLWGT))
+
+
+ggplot(time_aggregate, aes(x = TEAGE, y =avg, 
+                           color=weekend,
+                           group=weekend)) +
+  geom_point(size=.1) +
+  geom_smooth(se=FALSE) +
+  labs(
+    title = "Average time spent on different activities",    
+    x = "Time spent",
+    y = "",
+    caption = "ATUS: 2024"  ) +
+  scale_y_continuous(labels = label_hours_minutes) +
+  theme_bw() +
+  facet_wrap(~label)
+
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+Here's what it looks like using a "free" y scale:
+
+```{r}
+#| code-fold: true
+
+time_long<-atus_fmt|>
+  mutate(weekend = !TUDIARYDAY %in% c("Saturday", "Sunday"))|>
+  select(sleep:travel, TEAGE, TUFINLWGT, weekend)|>
+  pivot_longer(cols=-c(TUFINLWGT, weekend, TEAGE))|>
+  mutate(label = labels[name])
+
+time_aggregate<-time_long|>
+  group_by(label, weekend, TEAGE)|>
+  summarize(avg = weighted.mean(value, w=TUFINLWGT))
+
+
+ggplot(time_aggregate, aes(x = TEAGE, y =avg, 
+                           color=weekend,
+                           group=weekend)) +
+  geom_point(size=.1) +
+  geom_smooth(se=FALSE) +
+  labs(
+    title = "Average time spent on different activities",    
+    x = "Time spent",
+    y = "",
+    caption = "ATUS: 2024"  ) +
+  scale_y_continuous(labels = label_hours_minutes) +
+  theme_bw() +
+  facet_wrap(~label, 
+             # Free scale on the y-axis
+             scales='free_y')
+
+
+
+```
+:::
+:::::
+
+## Try it out
+
+- Variables beginning with `t130` are specific sports and recreation activities. Select all of these variables and put your results in long format (`t130101:t130301`)
+
+- Get a break down of time spent in different activities by weekly income (`TRERNWA`)
+
+
+
+## Try it out
+
+- Does teleworking (`telework`) increase or decrease the sex disparity in time spent on household chores among full time workers (`TRDPFTPT== 'Full time'`)? Make a visual to support your argument.
+
+
+
+## Survey data
+
+Some special considerations for survey visualization:
+
+-   Visualizations for categorical data
+-   Visualizing weighted responses
+-   Handling over-plotting
+-   Visualizing the margin of error
+-   Visualizing the results from a model
+
+### Survey data: Categorical Responses and Weights
+
+-   Many survey variables are categorical rather than continuous, which can restrict our options for visualization.
+
+#### Survey data: Bar plots
+
+::::::: r-stack
+::: {.fragment .fade-in-then-out}
+`geom_bar` automatically creates bars proportional to the number of observations.
+
+```{r}
+#| output-location: column
+
+ggplot(atus_fmt, aes(x=GTMETSTA)) + 
+  geom_bar()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+`geom_col` creates bars that are proportional to a value in the data (so you need to create the aggregated data yourself)
+
+```{r}
+#| output-location: column
+
+atus_agg<-atus_fmt|>
+  group_by(GTMETSTA)|>
+  summarise(Count = n())
+
+ggplot(atus_agg, aes(x=GTMETSTA, y= Count)) + 
+  geom_col() + 
+  theme_bw()
+
+
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+Doing the aggregation separately offers better flexibility for calculations and formatting.
+
+```{r}
+#| output-location: column
+
+atus_agg<-atus_fmt|>
+  group_by(GTMETSTA)|>
+  summarise(count = sum(TUFINLWGT))|>
+  mutate(proportion = count /sum(count))
+
+ggplot(atus_agg, aes(x=GTMETSTA, y=proportion)) + 
+  geom_col() +
+  theme_bw()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+Creating a dumbbell plot using `geom_pointrange` can be an appealing alternative to bar plots that focuses more attention on the important stuff (the ends)
+
+```{r}
+#| output-location: column
+
+atus_agg<-atus_fmt|>
+  group_by(GTMETSTA)|>
+  summarise(count = sum(TUFINLWGT))|>
+  mutate(proportion = count /sum(count))
+
+ggplot(atus_agg, aes(x=GTMETSTA, y=proportion)) + 
+    geom_pointrange(aes(ymin = 0, ymax = proportion),
+                  # making wider lines 
+                  lwd=.7, 
+                  # increasing the point size
+                  size = 1.5)
+
+```
+:::
+:::::::
+
+#### Survey data: Two-way bar plots
+
+::::::::: r-stack
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+atus_agg<-atus_fmt|>
+  group_by(telework, PEEDUCA)|>
+  summarise(count = sum(TUFINLWGT))|>
+  ungroup()|>
+  drop_na()|>
+  group_by(PEEDUCA)|>
+  mutate(proportion = count /sum(count))
+
+atus_agg
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+In this instance, the axis labels are too long to fit on the page.
+
+```{r}
+#| output-location: column
+
+ggplot(atus_agg, aes(x=PEEDUCA, 
+                     y=proportion, 
+                     fill=telework)) + 
+  geom_col()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+Using `coord_flip` (or just reversing what goes on the x and y axis) is often an easy fix in this situation.
+
+```{r}
+#| output-location: column
+
+ggplot(atus_agg, aes(x=PEEDUCA, 
+                     y=proportion, 
+                     fill=telework)) + 
+  geom_col() +
+  coord_flip()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+Adding `position='dodge'` to the plot will give side-by-side columns, instead of stacked bars.
+
+```{r}
+#| output-location: column
+
+ggplot(atus_agg, aes(x=PEEDUCA, 
+                     y=proportion, 
+                     fill=telework)) + 
+  coord_flip()+
+  geom_col(position='dodge')
+  
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+`scales::label_percent()` will automatically turn proportions into formatted % tick marks:
+
+```{r}
+#| output-location: column
+
+ggplot(atus_agg, aes(x=PEEDUCA, 
+                     y=proportion, 
+                     fill=telework)) + 
+  geom_col() +
+  coord_flip()+
+  scale_y_continuous(labels = scales::label_percent())+
+  labs(x = "Education",
+       y = "Percent",
+       fill  = "Telework"
+       )
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+You can also simplify the calculation of weighted proportions here using the `srvyr` package.
+
+```{r}
+#| output-location: column
+
+library(srvyr)
+atus_svy<-atus_fmt|>
+  as_survey_design(weights = TUFINLWGT)
+
+# getting survey proportions
+atus_agg<-atus_svy|>
+  # drop missing values
+  drop_na(telework, PEEDUCA)|>
+  # get proportions summing to 100% by education
+  group_by(PEEDUCA, telework)|>
+  summarise(survey_prop(vartype = 'ci'))
+
+ggplot(atus_agg, aes(x=PEEDUCA, 
+                     y=coef, 
+                     fill=telework)) + 
+  geom_col() +
+  coord_flip()+
+  scale_y_continuous(labels = scales::label_percent())+
+  labs(x = "Education",
+       y = "Percent",
+       fill  = "Telework"
+       )
+
+```
+:::
+:::::::::
+
+#### Survey data: Likert Plots
+
+Visualizing Likert scales can offer some unique challenges and there are multiple R packages with purpose-built Likert visualization
+
+#### Survey data: Likert Plots
+
+Here's an example of a Likert scale plot using regular ggplot functions.
+
+```{r}
+#| output-location: column
+
+fname<-here::here("data", "anes_timeseries_2024_csv_20250808.zip")
+anes  <- read_csv(unz(fname,"anes_timeseries_2024_csv_20250808.csv"))|>
+  # removing people who didn't complete the post interview survey
+  filter(V240002c == 2)
+anes <- anes|>
+  mutate(
+    respect_elders = recode_values(V242260, 
+                                   1 ~ 0 , 
+                                   2 ~ 1),
+    good_manners = recode_values(V242261, 
+                                 1 ~ 0, 
+                                 2 ~ 1),
+    obedience = recode_values(V242262, 
+                              2 ~ 0, 
+                              1 ~ 1),
+    well_behaved = recode_values(V242263, 
+                                 1 ~ 0, 
+                                 2 ~ 1),
+    authoritarianism = respect_elders + good_manners + obedience + well_behaved
+  )
+
+anes$authoritarianism_factor<-factor(anes$authoritarianism, 
+                                     levels=c(0, 1, 2,3,4),
+                                     labels=c("Lowest", "Low", "Moderate", "High", "Highest")
+                                     )
+labs<-c("1. Strongly agree",
+"2. Somewhat agree",
+"3. Neither agree nor disagree",
+"4. Somewhat disagree",
+"5. Strongly disagree")
+levs<-c(1, 2, 3, 4, 5)
+
+anes$prefer_stronglead <- factor(anes$V242411, levels=levs, labels=labs)
+anes$gender<-factor(anes$V241550, levels=c(1,2), labels=c("Male", "Female"))
+
+summary_data <- anes |>
+  group_by(gender, prefer_stronglead, authoritarianism_factor) |>
+  summarize(n = n()) |>
+  drop_na()|>
+  group_by(authoritarianism_factor, gender)|>
+  mutate(total = sum(n),
+         proportion = n/total,
+         label = sprintf("%.0f%%",
+                         proportion*100,
+                         n)
+         )
+
+
+ggplot(summary_data, aes(y=proportion, 
+                         x=authoritarianism_factor, 
+                         fill=prefer_stronglead, label=label)) +
+  geom_bar(stat='identity', position='stack') +
+  facet_grid(rows=~gender) +
+  scale_fill_discrete(palette = "RdYlBu") +
+  geom_text(position = position_stack(vjust = 0.5))+
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal() +
+  labs(x = "Authoritarianism index",
+       y= "%",
+       fill = 'Preference for strong leader',
+       title = 'V242411: A strong leader in government is good for the United States\neven if the leader bends the rules to get things done',
+       subtitle = '(by authoritarianism and gender)',
+       caption = 'Source: ANES 2024'
+       ) 
+
+```
+
+#### Survey data: Likert Plots
+
+Here's an example of creating a likert plot using the `gglikert` function from `ggstats`.
+
+```{r}
+#| output-location: column
+
+
+
+anes|>
+  drop_na(prefer_stronglead, gender, authoritarianism_factor)|>
+  gglikert(
+         include = c(prefer_stronglead),
+         facet_rows = vars(authoritarianism_factor),
+         # separate results by gender
+         facet_cols =vars(gender),
+         # removing the label so this can be printed in the title
+         variable_labels = c(prefer_stronglead = "") 
+         ) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+    labs(
+       fill = 'Preference for strong leader',
+       title = 'V242411: A strong leader in government is good for the United States\neven if the leader bends the rules to get things done',
+       subtitle = '(by authoritarianism and gender)',
+       caption = 'Source: ANES 2024'
+       ) 
+
+```
+

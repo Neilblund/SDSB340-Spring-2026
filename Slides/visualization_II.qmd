@@ -1,0 +1,1164 @@
+---
+title: "Visualization II"
+format:
+    revealjs:
+        theme: [blueyellow]
+        html-math-method: katex        
+        transition: fade
+        width: 1280
+        height: 720
+        df-print: tibble
+        smaller: true
+        scrollable: false
+        slide-number: true
+        self-contained: true
+        embed-resources: true
+        mermaid:
+            theme: forest
+        code-annotations: select
+        code-link: true
+        incremental: true
+bibliography: references.bib
+slide-level: 4
+execute:
+  echo: true
+  output-location: column
+lightbox: true
+---
+
+# Setup
+
+```{r}
+
+library(tidyverse)
+library(ggstats)
+library(ggplot2)
+library(jtools)
+library(gtsummary)
+
+atus_fmt<-readRDS(here::here('Data/atus.rds'))
+label_hours_minutes <- function(x) {
+  h <- floor(x / 60)
+  m <- round(x %% 60)
+  
+  # Logic to create strings like "1h 30m", "45m", or "2h"
+  labels <- ifelse(h > 0, 
+                   paste0(h, "h", ifelse(m > 0, paste0(" ", m, "m"), "")),
+                   paste0(m, "m"))
+  
+  # Ensure NAs remain NAs
+  labels[is.na(x)] <- NA
+  return(labels)
+}
+
+```
+
+### Long data
+
+-   ggplot works best with long format data. If we want to visualize several variables at once, you'll often need to do some additional data wrangling.
+
+### Long data
+
+:::::: r-stack
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+# store the variable labels in a list
+labels<-lapply(atus_fmt, function(x) attr(x, "label"))|>
+  unlist()
+# make long format data
+time_long<-atus_fmt|>
+  # selecting only the weight + columns related to activities
+  select(sleep:travel, TUFINLWGT)|>
+  # pivoting everything except the weights
+  pivot_longer(cols=-TUFINLWGT)|>
+  # adding the labels as a new column
+  mutate(label = labels[name])
+
+# viewing the results
+time_long|>
+  slice_head(n=10)
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+time_aggregate<-time_long|>
+  group_by(label)|>
+  summarize(avg = weighted.mean(value, w=TUFINLWGT))
+ggplot(time_aggregate, aes(x = avg, y=label)) + geom_point()
+
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+time_aggregate<-time_long|>
+  group_by(label)|>
+  summarize(avg = weighted.mean(value, w=TUFINLWGT))|>
+  mutate(label = reorder(label, avg))
+
+ggplot(time_aggregate, aes(x = avg, y=label)) +
+  geom_point() +
+  labs(
+ title = "Average time spent on different activities",    
+    x = "Time spent",
+    y = "",
+    caption = "ATUS: 2024"  ) +
+  scale_x_continuous(labels = label_hours_minutes) +
+  theme_bw()
+
+
+
+```
+:::
+::::::
+
+### Faceting and scaling
+
+Big differences in the scaling can make it difficult to identify *relative* changes within each group. Faceting with "free" axes can be a useful way to highlight a change at the expense of distorting absolute values.
+
+### Faceting and scaling
+
+::::: r-stack
+::: {.fragment .fade-in-then-out}
+This plot shows hours spent on different activities by age using the same scale for each facet.
+
+```{r}
+#| code-fold: true
+
+
+time_long<-atus_fmt|>
+  mutate(weekend = factor(TUDIARYDAY %in% c("Saturday", "Sunday"),
+                          levels = c(FALSE, TRUE),
+                          labels=c("Weekday", "Weekend")
+                          ))|>
+  select(sleep:travel, TEAGE, TUFINLWGT, weekend)|>
+  pivot_longer(cols=-c(TUFINLWGT, weekend, TEAGE))|>
+  mutate(label = labels[name])
+
+time_aggregate<-time_long|>
+  group_by(label, weekend, TEAGE)|>
+  summarize(avg = weighted.mean(value, w=TUFINLWGT))
+
+
+ggplot(time_aggregate, aes(x = TEAGE, y =avg, 
+                           color=weekend,
+                           group=weekend)) +
+  geom_point(size=.1) +
+  geom_smooth(se=FALSE) +
+  labs(
+    title = "Average time spent on different activities",    
+    subtitle = "by age",
+    x = "Time spent",
+    y = "",
+    caption = "ATUS: 2024"  ) +
+  scale_y_continuous(labels = label_hours_minutes) +
+  theme_bw() +
+  facet_wrap(~label,   labeller = label_wrap_gen(width = 25)) +
+  theme(legend.position = "bottom",
+        strip.text = element_text(size = 7)
+        ) 
+  
+
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+Here's what it looks like using a "free" y scale:
+
+```{r}
+#| code-fold: true
+
+time_long<-atus_fmt|>
+  mutate(weekend = factor(TUDIARYDAY %in% c("Saturday", "Sunday"),
+                          levels = c(FALSE, TRUE),
+                          labels=c("Weekday", "Weekend")
+                          ))|>
+  select(sleep:travel, TEAGE, TUFINLWGT, weekend)|>
+  pivot_longer(cols=-c(TUFINLWGT, weekend, TEAGE))|>
+  mutate(label = labels[name])
+
+time_aggregate<-time_long|>
+  group_by(label, weekend, TEAGE)|>
+  summarize(avg = weighted.mean(value, w=TUFINLWGT))
+
+
+ggplot(time_aggregate, aes(x = TEAGE, y =avg, 
+                           color=weekend,
+                           group=weekend)) +
+  geom_point(size=.1) +
+  geom_smooth(se=FALSE) +
+  labs(
+    title = "Average time spent on different activities",    
+    x = "Time spent",
+    y = "",
+    caption = "ATUS: 2024"  ) +
+  scale_y_continuous(labels = label_hours_minutes) +
+  theme_bw() +
+  facet_wrap(~label, 
+             # Free scale on the y-axis
+             scales='free_y',
+             labeller = label_wrap_gen(width = 30)
+             ) +
+  theme(legend.position = "bottom",
+        strip.text = element_text(size = 6)
+        ) 
+  
+
+
+
+```
+:::
+:::::
+
+## Try it out
+
+- Variables beginning with `t130` are specific sports and recreation activities. Select all of these variables and put your results in long format (`t130101:t130301`)
+
+- Get a break down of time spent in different activities by weekly income (`TRERNWA`)
+
+
+
+
+
+
+
+
+
+## Survey data
+
+Some special considerations for visualizing survey data
+
+-   Visualizations for categorical data
+-   Visualizing weighted responses
+-   Handling over-plotting
+-   Visualizing the margin of error
+-   Visualizing the results from a model
+
+### Survey data: Categorical Responses and Weights
+
+-   Many survey variables are categorical rather than continuous, which can restrict our options for visualization.
+
+#### Survey data: Bar plots
+
+::::::: r-stack
+::: {.fragment .fade-in-then-out}
+`geom_bar` automatically creates bars proportional to the number of observations.
+
+```{r}
+#| output-location: column
+
+ggplot(atus_fmt, aes(x=GTMETSTA)) + 
+  geom_bar()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+`geom_col` creates bars that are proportional to a value in the data (so you need to create the aggregated data yourself)
+
+```{r}
+#| output-location: column
+
+atus_agg<-atus_fmt|>
+  group_by(GTMETSTA)|>
+  summarise(Count = n())
+
+ggplot(atus_agg, aes(x=GTMETSTA, y= Count)) + 
+  geom_col() + 
+  theme_bw()
+
+
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+Doing the aggregation separately offers better flexibility for calculations and formatting.
+
+```{r}
+#| output-location: column
+
+atus_agg<-atus_fmt|>
+  group_by(GTMETSTA)|>
+  summarise(count = sum(TUFINLWGT))|>
+  mutate(proportion = count /sum(count))
+
+ggplot(atus_agg, aes(x=GTMETSTA, y=proportion)) + 
+  geom_col() +
+  theme_bw()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+Creating a dumbbell plot using `geom_pointrange` can be an appealing alternative to bar plots that focuses more attention on the important stuff (the ends)
+
+```{r}
+#| output-location: column
+
+atus_agg<-atus_fmt|>
+  group_by(GTMETSTA)|>
+  summarise(count = sum(TUFINLWGT))|>
+  mutate(proportion = count /sum(count))
+
+ggplot(atus_agg, aes(x=GTMETSTA, y=proportion)) + 
+    geom_pointrange(aes(ymin = 0, ymax = proportion),
+                  # making wider lines 
+                  lwd=.7, 
+                  # increasing the point size
+                  size = 1.5)
+
+```
+:::
+:::::::
+
+#### Survey data: Two-way bar plots
+
+::::::::: r-stack
+::: {.fragment .fade-in-then-out}
+```{r}
+#| output-location: column
+
+atus_agg<-atus_fmt|>
+  group_by(telework, PEEDUCA)|>
+  summarise(count = sum(TUFINLWGT))|>
+  ungroup()|>
+  drop_na()|>
+  group_by(PEEDUCA)|>
+  mutate(proportion = count /sum(count))
+
+atus_agg
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+In this instance, the axis labels are too long to fit on the page.
+
+```{r}
+#| output-location: column
+
+ggplot(atus_agg, aes(x=PEEDUCA, 
+                     y=proportion, 
+                     fill=telework)) + 
+  geom_col()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+Using `coord_flip` (or just reversing what goes on the x and y axis) is often an easy fix in this situation.
+
+```{r}
+#| output-location: column
+
+ggplot(atus_agg, aes(x=PEEDUCA, 
+                     y=proportion, 
+                     fill=telework)) + 
+  geom_col() +
+  coord_flip()
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+Adding `position='dodge'` to the plot will give side-by-side columns, instead of stacked bars.
+
+```{r}
+#| output-location: column
+
+ggplot(atus_agg, aes(x=PEEDUCA, 
+                     y=proportion, 
+                     fill=telework)) + 
+  coord_flip()+
+  geom_col(position='dodge')
+  
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+`scales::label_percent()` will automatically turn proportions into formatted % tick marks:
+
+```{r}
+#| output-location: column
+
+ggplot(atus_agg, aes(x=PEEDUCA, 
+                     y=proportion, 
+                     fill=telework)) + 
+  geom_col() +
+  coord_flip()+
+  scale_y_continuous(labels = scales::label_percent())+
+  labs(x = "Education",
+       y = "Percent",
+       fill  = "Telework"
+       )
+
+```
+:::
+
+::: {.fragment .fade-in-then-out}
+You can also simplify the calculation of weighted proportions here using the `srvyr` package.
+
+```{r}
+#| output-location: column
+
+library(srvyr)
+atus_svy<-atus_fmt|>
+  as_survey_design(weights = TUFINLWGT)
+
+# getting survey proportions
+atus_agg<-atus_svy|>
+  # drop missing values
+  drop_na(telework, PEEDUCA)|>
+  # get proportions summing to 100% by education
+  group_by(PEEDUCA, telework)|>
+  summarise(survey_prop(vartype = 'ci'))
+
+ggplot(atus_agg, aes(x=PEEDUCA, 
+                     y=coef, 
+                     fill=telework)) + 
+  geom_col() +
+  coord_flip()+
+  scale_y_continuous(labels = scales::label_percent())+
+  labs(x = "Education",
+       y = "Percent",
+       fill  = "Telework"
+       )
+
+```
+:::
+:::::::::
+
+#### Survey data: Plotting a likert-type question
+
+Plotting Likert items can present some unique challenges. We'll walk through a couple examples for how you might create visuals for a series of agree/disagree questions.
+
+#### Survey data: Likert Plots
+
+Here's an example of a Likert scale plot using regular ggplot functions.
+
+
+
+
+```{r}
+#| output-location: column
+
+anes_subset<-readRDS(here::here('Data/anes_tssubset.rds'))
+
+labels<-sapply(anes_subset, function(x) attr(x, 'label'))
+
+anes_long<-anes_subset|>
+  select(id, full.weight, year, c(rr_1, rr_2, rr_3, rr_4))|>
+  pivot_longer(cols = c(rr_1, rr_2, rr_3, rr_4))
+
+anes_long$qlabel<-unlist(labels[anes_long$name])
+
+
+
+# aggregating by year and question
+summary_data<-anes_long|>
+  drop_na()|>
+  group_by(qlabel, value, year)|>
+  summarise(n = sum(full.weight))|>
+  ungroup()|>
+  group_by(qlabel, year)|>
+  mutate(proportion = n/sum(n),
+         label = sprintf("%.0f%%",
+                         proportion*100)
+         )
+
+# plotting by year and faceting by question
+ggplot(summary_data, aes(x=year, y=proportion, fill=value, label=label)) +
+  geom_col() +
+  geom_text(position = position_stack(vjust = 0.5), size=3)+
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_reverse()+
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_discrete(palette = "RdYlBu")  +
+  labs(x = "",
+       y= "%",
+       fill = "",
+       title = 'Racial Resentment Questions',
+       caption = 'Source: ANES 2024'
+  )  +
+    theme(legend.position = "bottom") +
+  facet_wrap(~qlabel,  labeller = label_wrap_gen(width = 50))
+
+
+```
+
+#### Survey data: Likert Plots
+
+The `gglikert` function from the `ggstats` package can produce detailed visualizations for likert type questions with minimal code. 
+
+Note that the output produced by the `gglikert` function is still a ggplot object, so you can still add layers just like you would with other plots.
+
+
+```{r}
+#| output-location: column
+#| echo: false
+
+
+
+anes_subset|>
+  gglikert(
+    include = c(rr_1, rr_2, rr_3, rr_4),
+    weights = full.weight,
+  ) +
+  theme_minimal() +
+  labs(title = "Racial resentment",
+       caption = "Source: ANES Times series (1992-2024)"
+       )
+
+```
+
+
+
+#### Survey data: Likert Plots
+
+You don't need to pivot the data into long format for this to work, just select multiple columns in the "include" argument.
+
+```{r}
+#| output-location: column
+
+
+
+anes_subset|>
+  gglikert(
+    include = c(rr_1, rr_2, rr_3, rr_4),
+    weights = full.weight,
+  ) +
+  theme_minimal() +
+  labs(title = "Racial resentment",
+       caption = "Source: ANES Times series (1992-2024)"
+       )
+
+```
+
+#### Survey data: Likert Plots
+
+The `facet_rows` and `facet_cols` arguments will produce faceted output:
+
+```{r}
+#| output-location: column
+
+anes_subset|>
+  filter(year %in%c(2000, 2024))|>
+  gglikert(
+    include = c(rr_1, rr_2, rr_3, rr_4),
+    weights = full.weight,
+    facet_rows = vars(year)
+  ) +
+  theme_minimal() +
+  labs(title = "Racial resentment by year",
+       caption = "Source: ANES Times series (2000 vs. 2024)"
+       
+       )
+```  
+
+#### Survey data: Likert Plots
+
+If the goal is to show change over time, it might make sense to draw plots separately for each question so that the results for each year are easier to compare.
+
+```{r}
+#| output-location: column
+
+# alternatively: looking at a single question over a longer period of time
+
+anes_subset|>
+  gglikert(
+    include = rr_2,
+    facet_rows = vars(year),
+    weights = full.weight,
+    variable_labels=c(rr_2 = "")
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  labs(title = "Agree/Disagree: \"Blacks should not have special favors to succeed\"" ,
+       caption = "Source: ANES Times series (1992-2024)"
+       
+  )
+
+
+```
+
+
+### Overplotting
+
+
+### Handling overplotting
+
+::::: columns
+::: {.column width="50%"}
+Over-plotting occurs when data points or labels overlap. This happens a lot with survey variables that only have a few discrete values.
+
+
+:::
+  
+::: {.column width="50%"}
+```{r}
+#| code-fold: true
+ggplot(atus_fmt, aes(x=TRERNWA/100, y=sports_recreation )) + 
+  geom_point() + 
+  theme_bw() +
+  labs(title = "Example of overplotting",
+       x = "Weekly Wages",
+       y="Time spent on sports and recreation"
+  )
+
+
+```
+:::
+:::::
+
+
+#### Handling overplotting
+
+Some options
+
+:::: r-stack
+
+::: {.fragment .fade-in-then-out fragment-index=1}
+
+Using a different shape or size (ex: `pch=21` will give hollow circles)
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=2}
+
+Changing the transparency level (adjusting `alpha` to a value less than 1 will make transparent points)
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=3}
+
+Adding random noise with a "jitter" (take note of whether you need more noise on the X or Y axis)
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=4}
+Hexbin plots "bin" the data into groups and then use color-coding to indicate the number of observations in each bin (like a histogram in 2-dimensions)
+
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=5}
+2D density plots are analogous to a kernel density plot.
+
+:::
+::::
+
+
+:::: r-stack
+
+::: {.fragment .fade-in-then-out fragment-index=0}
+
+```{r}
+#| output-location: column
+
+
+
+ggplot(atus_fmt, aes(x=TRERNWA/100, y=food )) + 
+  geom_point() + 
+  theme_bw() +
+  labs(title = "Example of overplotting",
+       x = "Weekly Wages",
+       y="Time spent on eating and drinking"
+  )
+
+
+```
+
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=1}
+```{r}
+#| output-location: column
+
+ggplot(atus_fmt, aes(x=TRERNWA/100, y=food )) + 
+  geom_point(pch=21) + 
+  theme_bw() +
+  labs(title = "Example of overplotting",
+       x = "Weekly Wages",
+       y="Time spent on eating and drinking"
+  )
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=2}
+```{r}
+#| output-location: column
+
+ggplot(atus_fmt, aes(x=TRERNWA/100, y=food )) + 
+  geom_point(alpha=.3) + 
+  theme_bw() +
+  labs(title = "Example of overplotting",
+       x = "Weekly Wages",
+       y="Time spent on eating and drinking"
+  )
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=3}
+```{r}
+#| output-location: column
+
+ggplot(atus_fmt, aes(x=TRERNWA/100, y=food )) + 
+  geom_point(position = position_jitter(height=5, width=0)) + 
+  theme_bw() +
+  labs(title = "Example of overplotting",
+       x = "Weekly Wages",
+       y="Time spent on eating and drinking"
+  )
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=4}
+```{r}
+#| output-location: column
+
+ggplot(atus_fmt, aes(x=TRERNWA/100, y=food )) + 
+  geom_hex(bins=60) + 
+  theme_bw() +
+  labs(title = "Example of overplotting",
+       x = "Weekly Wages",
+       y="Time spent on eating and drinking"
+  ) +
+  scale_fill_viridis_c()
+
+
+```
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=5}
+```{r}
+#| output-location: column
+
+
+ggplot(atus_fmt, aes(x=TRERNWA/100, y=food)) + 
+  stat_density_2d(aes(fill = ..level..), geom = "polygon") +
+  theme_bw() +
+  labs(title = "Example of overplotting",
+       x = "Weekly Wages",
+       y="Time spent on eating and drinking"
+  ) +
+  scale_fill_viridis_c() 
+
+
+
+```
+:::
+
+::::
+
+#### Handling overplotting
+
+When all else fails, you might consider making one of the variables discrete and then use a box plot or strip chart to visualize the relationship of interest.
+
+
+```{r}
+#| output-location: column
+
+atus_fmt|>
+  mutate(income_discrete = factor(ntile(TRERNWA/100, 10))
+         )|>
+  drop_na(income_discrete)|>
+ggplot(aes(x=income_discrete, y=food)) + 
+  geom_point(position = position_jitter(width=.2, height=0), alpha=.3, pch = 21) +
+  geom_boxplot(outliers=FALSE, alpha=.8, fill='orange') + 
+  theme_bw() +
+  labs(title = "Example of overplotting",
+       x = "Weekly Wages (decile)",
+       y="Time spent on eating and drinking"
+  ) +
+  coord_flip()
+```
+
+
+#### Handling overplotting
+
+
+
+```{r}
+
+
+```
+
+### Visualizing Uncertainty and Model Results
+
+How should we visualize an estimate with uncertainty?
+
+```{r}
+#| output-location: column
+
+yngchild<-atus_fmt|>
+  filter(TRYHHCHILD < 5)|>
+  droplevels()
+
+yngchild |>
+  tbl_summary(
+    include = hh_caretaking,
+    by = TESEX,
+    statistic = all_continuous() ~ "{mean} ({sd})"
+  ) |>
+  add_ci()
+
+```
+
+
+#### Visualizing Uncertainty
+
+`stat_summary` functions can be used to compute both a mean and a confidence interval for the same value:
+
+
+
+:::: {.r-stack}
+::: {.fragment .fade-in-then-out fragment-index=1}
+
+```{r}
+#| output-location: column
+
+
+ggplot(yngchild, aes(x = TESEX, y = hh_caretaking)) +
+  stat_summary(fun = mean, 
+               geom = "point",
+               size = 3, 
+               color = "red") +
+  theme_bw() + 
+  labs(x= "Sex", 
+       y="Time spent caring for household members")
+
+    
+
+```
+
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=2}
+```{r}
+#| output-location: column
+
+
+ggplot(yngchild, aes(x = TESEX, y = hh_caretaking)) +
+  stat_summary(fun.data = mean_cl_normal,
+               geom = "errorbar",
+               width = 0.2) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    size = 3,
+    color = "red"
+  ) +
+  theme_bw() +
+  labs(x = "Sex", 
+       y = "Time spent caring for household members")
+
+    
+
+```
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=3}
+```{r}
+#| output-location: column
+
+
+ggplot(yngchild, aes(x = TESEX, y = hh_caretaking)) +
+  geom_jitter(
+    data = ~ sample_frac(.x, 0.20),
+    alpha = .3,
+    width = .05,
+    height = 1,
+    pch = 21
+  ) +
+  stat_summary(fun.data = mean_cl_normal,
+               geom = "errorbar",
+               width = 0.2) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    size = 3,
+    color = "red"
+  ) +
+  theme_bw() +
+  labs(x = "Sex", y = "Time spent caring for household members")
+
+    
+
+```
+:::
+
+
+::::
+
+
+#### Visualizing Uncertainty
+
+
+Keep in mind that sample size impacts the width of your confidence intervals. So you might prefer to combine similar groups to improve statistical power.
+
+
+
+:::: {.r-stack}
+::: {.fragment .fade-in-then-out fragment-index=1}
+
+
+```{r}
+#| output-location: column
+
+
+yngchild |>
+  ggplot(aes(x = TRSPPRES, y = hh_caretaking)) +
+  stat_summary(fun.data = mean_cl_normal,
+               geom = "errorbar",
+               width = 0.2) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    size = 3,
+    color = "red"
+  ) +
+  theme_bw() +
+  labs(x = "Cohabitation", 
+       y = "Time spent caring for household members") +
+  coord_flip()
+
+    
+
+```
+
+    
+
+
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=2}
+```{r}
+#| output-location: column
+
+yngchild$cohab<-fct_collapse(
+  yngchild$TRSPPRES, 
+  `Spouse or partner present` = c("Unmarried partner present", "Spouse present"))
+
+yngchild |>
+  ggplot(aes(x = cohab, y = hh_caretaking)) +
+  stat_summary(fun.data = mean_cl_normal,
+               geom = "errorbar",
+               width = 0.2,) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    size = 3,
+    color = 'red'
+  ) +
+  theme_bw() +
+  labs(x = "Cohabitation", 
+       y = "Time spent caring for household members") +
+  
+  coord_flip()
+
+```
+:::
+
+
+
+
+
+::::
+
+
+
+#### Visualizing Model Results:  Regression
+
+- Regression models give the effect of a one unit increase in one or more independent variables on the expected value of some outcome variable. 
+
+- They're a useful way to show the association between two variables while controlling for some third (or fourth or fifth additional characteristic)
+
+#### Visualizing Model Results:  Regression
+
+
+![](images/reg_results.png)
+from: Campos N, Federico C. A New Measure of Affective Polarization. American Political Science Review. 2026;120(1):160-178. doi:10.1017/S0003055425000255
+
+#### Visualizing Model Results:  Regression
+
+
+```{r}
+
+
+model<-lm(hh_caretaking ~ TESEX + cohab + TRYHHCHILD , data=yngchild )
+# getting formatted regression output:
+tbl_regression(model)
+
+```
+
+
+
+
+#### Visualizing Model Results
+
+:::: {.r-stack}
+
+
+
+::: {.fragment .fade-in-then-out fragment-index=2}
+```{r}
+#| output-location: column
+
+
+effect_plot(model, pred='TESEX') +
+  labs(x = "Sex", 
+       y = "Time spent on caretaking",
+       title  ='Predicted time spent on caretaking by sex')
+
+```
+
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=3}
+```{r}
+#| output-location: column
+
+effect_plot(model, pred='cohab') +
+  labs(x = "Cohabitation", 
+       y = "Time spent on caretaking",
+       title  ='Predicted time spent on caretaking by living arrangement')
+
+```
+
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=4}
+```{r}
+#| output-location: column
+
+effect_plot(model, 
+            interval = TRUE,
+            pred='TRYHHCHILD') +
+  labs(x = "Number of children", 
+       y = "Time spent on caretaking",
+       title  ='Predicted time spent on caretaking by number of children') 
+```
+
+:::
+
+
+::: {.fragment .fade-in-then-out fragment-index=4}
+```{r}
+#| output-location: column
+
+effect_plot(model, 
+            interval = TRUE,
+            pred='TRYHHCHILD') +
+  labs(x = "Number of children", 
+       y = "Time spent on caretaking",
+       title  ='Predicted time spent on caretaking by number of children') +
+  theme_bw() # if you want a consistent theme, you can re-set.
+
+```
+
+:::
+
+::::
+
+
+
+#### Visualizing Model Results
+
+
+:::: {.r-stack}
+::: {.fragment .fade-in-then-out fragment-index=1}
+
+```{r}
+#| output-location: column
+
+plot_summs(model)+
+  labs(title = "DV: Time spent on caretaking")
+
+```
+
+:::
+
+::: {.fragment .fade-in-then-out fragment-index=2}
+
+```{r}
+#| output-location: column
+
+plot_summs(
+  model, 
+  coefs =  c(
+    "Female (vs. Male)" = "TESEXFemale",
+    "No spouse/partner present (vs. present)" = "cohabNo spouse or unmarried partner present",
+    "Number of children" = "TRYHHCHILD"
+  )
+) +
+  labs(title = "DV: Time spent on caretaking")
+
+```
+
+:::
+
+::::
+
+
+#### Visualizing Uncertainty
+
+
+
+```{r}
+atus_fmt|>
+  filter(TRYHHCHILD < 5)|>
+  ggplot(aes(x=TESEX, y=hh_caretaking, weight= TUFINLWGT)) + 
+  geom_point(position=position_jitter(width = .2), alpha=.5, pch=21) + 
+  geom_boxplot(outliers=FALSE , alpha=.6) + 
+  theme_bw()
+
+```
+
+
+
+
+## Try it out
+
+- How does teleworking (`telework`) change the amount of time spent on `food`, `chores`, `work`, and `sports_recreation` among full time workers (`TRDPFTPT== 'Full time'`) during the weekday? Make a visual to support your argument.
+
+- Does teleworking increase/reduce gender disparities across any of these domains?
+
+
+```{r}
+# getting the filtered data:
+atus_workers<-atus_fmt|>
+    filter(!TUDIARYDAY%in%c("Saturday", "Sunday"))|>
+    filter(TRDPFTPT== 'Full time')|>
+    drop_na(telework)
+
+```
+
+
+  
+### General tips on data visualization
+  
+  -   The best way to learn is through replication: find an example and adapt it. [here's a great place to start](https://r-graph-gallery.com/)
+
+-   Care.
+
+-   Consider resolution and audience: slide decks should have big plots with minimal detail, written reports can tolerate more subtlety.
+
+-   Almost all "3d" plots are pointless.

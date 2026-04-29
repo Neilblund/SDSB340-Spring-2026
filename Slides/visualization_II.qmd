@@ -36,7 +36,10 @@ library(ggplot2)
 library(jtools)
 library(gtsummary)
 
-atus_fmt<-readRDS(here::here('Data/atus.rds'))
+
+file<-url("https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/atus.rds")
+atus_fmt<-readRDS(file)
+
 label_hours_minutes <- function(x) {
   h <- floor(x / 60)
   m <- round(x %% 60)
@@ -456,8 +459,9 @@ Here's an example of a Likert scale plot using regular ggplot functions.
 
 ```{r}
 #| output-location: column
-
-anes_subset<-readRDS(here::here('Data/anes_tssubset.rds'))
+#| 
+site<-'https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/anes_tssubset.rds'
+anes_subset<-readRDS(url(site))
 
 labels<-sapply(anes_subset, function(x) attr(x, 'label'))
 

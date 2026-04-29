@@ -1,0 +1,167 @@
+---
+title: "R homework 1"
+format: 
+  html: 
+   toc: true
+   theme: 
+     - united
+   self-contained: true
+   filters: 
+     - honeypot
+editor: visual
+---
+
+Use R to answer the questions below. For this assignment, you can write your answers to questions in comments in your R script, or you can submit written answers and R code in separate documents.
+
+# Setup
+
+Use the code below to load the tidyverse and import the NHANES data and the codebook with variable descriptions.
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+nhanes<-read_csv("https://raw.githubusercontent.com/Neilblund/SDSB340-Spring-2026/refs/heads/master/Data/nhanes.csv")
+
+codebook<-read_csv("https://raw.githubusercontent.com/Neilblund/SDSB340-Spring-2026/refs/heads/master/Data/nhanes_codebook.csv")
+
+
+
+```
+
+You can view the `codebook` to get additional detail on the variables in this data set.
+
+## Question 1
+
+What proportion of respondents **between ages 18 - 59** were regular marijuana users? (use `RegularMarij`)?
+
+::: {.callout-note appearance="minimal"}
+### Answer
+
+The answer here could vary slightly depending on how you calculate the answer.
+
+Here's an example of a solution that uses `filter` to eliminate people outside the age range, and then calculates the mean of `RegularMarij == "Yes"`. This approach would ignore anyone who didn't answer the question, so the proportion is \~28%
+
+```{r}
+nhanes|>
+  filter(Age>=18 & Age<=59)|>
+  summarise(mj = mean(RegularMarij == "Yes", na.rm=T))
+
+```
+
+You could also do this using `groupby`, but this wouldn't automatically drop `NA` responses, so the estimate is slightly lower at \~24%
+
+```{r}
+nhanes|>
+  filter(Age>=18 & Age<=59)|>
+  group_by(RegularMarij )|>
+  summarize(n = n())|>
+  ungroup()|>
+  mutate(proportion = n/sum(n))
+
+```
+:::
+
+## Question 2
+
+Stage 2 hypertension is described as a Systolic blood pressure reading greater than or equal to 140, OR a diastolic reading greater than or equal to 90.
+
+Using `BPSysAve` as your measure for systolic blood pressure and `BPDiaAve` as your measure for diastolic, use `mutate` to create a new variable called `stage2hyper` that is `TRUE` if a respondent has stage 2 hypertension and `FALSE` otherwise.
+
+### Answer
+
+::: {.callout-note appearance="minimal"}
+You could do this with `mutate`
+
+```{r}
+nhanes<-nhanes|>
+  mutate(stage2hyper = BPSysAve  >= 140 | BPDiaAve >=90)
+
+
+```
+
+We could also do this without `mutate`, the main difference is that we need to use the `$` notation here:
+
+```{r}
+nhanes$stage2hyper <- nhanes$BPSysAve  >= 140 | nhanes$BPDiaAve >=90
+
+```
+:::
+
+## Question 3
+
+Use `filter`, `groupby` , `summarize` , and `mean` to calculate the mean number of `DaysPhysHlthBad` for **adults** with and without stage 2 hypertension. Briefly discuss your results.
+
+::: {.callout-note appearance="minimal"}
+### Answer
+
+The average for adults without stage 2 hypertension was 3.35, the average for adults with stage 2 hypertension was 4.14. Unsurprisingly, having very high blood pressure is associated with poor health.
+
+```{r}
+nhanes|>
+  filter(Age >= 18)|>
+  group_by(stage2hyper)|>
+  summarize(DaysPhysHlthBad = mean(DaysPhysHlthBad, na.rm=T))
+
+```
+:::
+
+## Question 4
+
+Calculate the proportion of **adult respondents** who had blood pressure readings that indicated stage 2 hypertension by `Gender`.
+
+Which group had a higher rate of hypertension?
+
+::: {.callout-note appearance="minimal"}
+### Answer
+
+Stage 2 hypertension is about 2 percentage points higher among men compared to women (at least for those respondents who had a blood pressure reading).
+
+```{r}
+nhanes|>
+  filter(Age>=18)|>
+  group_by(Gender)|>
+  summarize(stage2hyper= mean(stage2hyper, na.rm=T))
+  
+
+```
+
+Fun fact: this relationship reverses after age 60 or so:
+
+```{r}
+nhanes|>
+  filter(Age>=65)|>
+  group_by(Gender)|>
+  summarize(stage2hyper= mean(stage2hyper, na.rm=T))
+  
+
+```
+:::
+
+## Question 5
+
+Use `filter`, `fct_relevel`, `group_by` and `summarize` to get the proportion of adult respondents who use a computer more than 4 hours per day (`CompHrsDay`) by `Education`. Ensure that values of education are displayed in a sensible order in your output.
+
+Are more educated people more likely or less likely to spend more than 4 hours in front of the computer?
+
+::: {.callout-note appearance="minimal"}
+### Answer
+
+As the education level increases, so do the changes of spending more than 4 hours in front of the TV.
+
+```{r}
+
+nhanes|>
+  filter(Age>=18)|>
+  mutate(Education = fct_relevel(Education, '8th Grade', 
+                                 '9 - 11th Grade',
+                                 'High School',
+                                 'Some College',
+                                 'College Grad'
+                                 ))|>
+  group_by(Education)|>
+  summarize(CompHrsDay = mean(CompHrsDay%in%c('4_hr', 'More_4_hr'), 
+                              na.rm=T))|>
+  drop_na()
+
+
+```
+:::

@@ -1,0 +1,565 @@
+---
+title: "R homework 2"
+format: 
+  html: 
+   theme: united
+   toc: true
+   self-contained: true
+   df-print: paged
+   code-link: true
+   lightbox: true
+editor: visual
+---
+
+```{r setup_actual}
+#| include: FALSE
+knitr::opts_chunk$set(echo = TRUE, 
+                      message=FALSE, 
+                      warning =FALSE)
+```
+
+## Setup and background
+
+For this assignment, you'll be working with a series of questions from the [[2024]{.underline} round of the ANES](https://electionstudies.org/data-center/2024-time-series-study/) that attempt to measure "authoritarian" personalities. Authoritarianism is a personality type associated with a strong need for order, support for established authorities, and intolerance toward ambiguity and non-conformity. The ANES uses a measure of authoritarianism that asks respondents to say which of a pair of qualities they view are more important for a child to have:
+
+| Variable Name | Variable Description |
+|----|----|
+| V242260 | (More important for a child to have:) 1. Independence or 2. **Respect for elders** |
+| V242261 | (More important for a child to have:) 1. Curiosity or 2. **Good manners** |
+| V242262 | (More important for a child to have:) 1. **Obedience** or 2. self reliance |
+| V242263 | (More important for a child to have:) 1. Being considerate or 2. **Well behaved** |
+
+Qualities associated with authoritarianism are indicated in **bold**, and responses are typically added together to create a summary measure that counts the total number of more "authoritarian" preferences for each respondent.
+
+### Data
+
+To access the ANES 2024 data, head over to [electionstudies.org](https://electionstudies.org/) and click on the "Data Center", then click on the link for the [**2024 Time Series Study**](https://electionstudies.org/data-center/2024-time-series-study/)
+
+Under the "Download Data" heading, click on the button that says "CSV" to download the `.csv` formatted file. You'll want to place this a folder called "data" inside your current working directory. You do not need to unzip the file. We can do this from inside of R.
+
+If you've set this up correctly, the code below should import a data set with 4,496 observations
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(gtsummary)
+library(gt)
+fname<-here::here("data", "anes_timeseries_2024_csv_20250808.zip")
+anes  <- read_csv(unz(fname,"anes_timeseries_2024_csv_20250808.csv"))|>
+  # removing people who didn't complete the post interview survey
+  filter(V240002c == 2)
+
+
+
+```
+
+Consult the [User Guide and Codebook](https://electionstudies.org/anes_timeseries_2024_userguidecodebook_20250808/) for additional details on the questions in this survey.
+
+## Question 1
+
+`V242411` asks respondents whether they agree or disagree with the statement that "Having a strong leader in government is good for the United States even if the leader bends the rules to get things done."
+
+Recode this variable to a factor variable with appropriate labels, leaving out refusals and other non-responses (values from -9 to -1). **Present a formatted table showing the percent and number of respondents who chose each of the remaining options.**
+
+::: {.callout-note appearance="minimal"}
+### Answer
+
+```{r}
+
+labs<-c("1. Strongly agree",
+"2. Somewhat agree",
+"3. Neither agree nor disagree",
+"4. Somewhat disagree",
+"5. Strongly disagree")
+levs<-c(1, 2, 3, 4, 5)
+
+anes$prefer_stronglead <- factor(anes$V242411, levels=levs, labels=labs)
+
+
+```
+
+```{r}
+
+anes |>
+  tbl_summary(
+    include = "prefer_stronglead",
+    label = list(
+      prefer_stronglead ~ "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done"
+    )) |>
+  modify_source_note("**Source: ANES 2024**")
+```
+:::
+
+## Question 2
+
+Use these four items to create an additive index of authoritarianism. Where the value of the index for each respondent indicates the total number of "authoritarian" qualities they chose.
+
+In other words, you'll code:
+
+-   **For V242260, code** Respect for elders = 1, Independence = 0, all other responses = NA
+
+-   **For V242261, code** Good manners = 1, Curiosity = 0, all other responses = NA
+
+-   **For V242262, code** Obedience = 1, Self-reliance = 0, all other responses = NA
+
+-   **For V242263, code** Well behaved = 1, Considerate = 0, all other responses = NA
+
+Your index should be the sum of these four variables, so your resulting index should range from 0 to 4. Check to make sure you've recoded correctly (the result should have a mean of 1.9 after removing all missing responses).
+
+::: {.callout-note appearance="minimal"}
+### Answer
+
+Here's an option that uses `recode_values`:
+
+```{r}
+
+
+anes <- anes|>
+  mutate(
+    respect_elders = recode_values(V242260, 
+                                   1 ~ 0 , 
+                                   2 ~ 1),
+    good_manners = recode_values(V242261, 
+                                 1 ~ 0, 
+                                 2 ~ 1),
+    obedience = recode_values(V242262, 
+                              2 ~ 0, 
+                              1 ~ 1),
+    well_behaved = recode_values(V242263, 
+                                 1 ~ 0, 
+                                 2 ~ 1),
+    authoritarianism = respect_elders + good_manners + obedience + well_behaved
+  )
+
+
+
+mean(anes$authoritarianism, na.rm=T)
+
+```
+:::
+
+## Question 3
+
+Create a table that summarizes the relationship between preference for strong leaders (`V242411`) and your authoritarianism index. **Present your findings in a formatted table and briefly discuss your results.** Are the results consistent with what you would expect?
+
+:::: {.callout-note appearance="minimal"}
+### Answer
+
+There are multiple ways to get a "correct" answer here, but it should be pretty clear from the table that higher levels of authoritarianism are associated with stronger agreement with the statement about strong leaders. This probably isn't very surprising, given that authoritarianism is associated with preferring a need for order and support for established authorities.
+
+Click the panels below to see some alternatives for creating a formatted table showing this relationship.
+
+::: panel-tabset
+#### gtsummary crosstab
+
+The default in `gtsummary` treats "authoritarianism" as a categorical variable, so you get a crosstab with 25 cells:
+
+```{r}
+anes |>
+  tbl_summary(
+    include = "prefer_stronglead",
+    by = "authoritarianism",
+    label = list(
+      prefer_stronglead ~ "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done"
+    )) |>
+  modify_source_note("**Source: ANES 2024**") |>
+  modify_spanning_header(all_stat_cols() ~ "Number of authoritarian preferences")
+
+
+
+```
+
+This may prove to be a bit too "busy", so we could collapse some categories reduce the number of cells.
+
+```{r}
+
+
+anes$authoritarianism3cat<-factor(anes$authoritarianism, 
+                                     levels=c(0, 1, 2,3,4),
+                                     labels=c("Low", "Low", "Moderate", "High", "High")
+                                     )
+
+
+anes|>
+  tbl_summary(include = "prefer_stronglead", by="authoritarianism3cat",
+              label = list(prefer_stronglead ~ "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done")
+              )|>
+  modify_source_note("**Source: ANES 2024**") |>
+  modify_spanning_header(all_stat_cols() ~ "**Authoritarianism**")
+
+```
+
+Finally, you can use [`tbl_cross`](https://www.danieldsjoberg.com/gtsummary/reference/tbl_cross.html) instead of `tbl_summary` to create the crosstab. This simplifies some of the formatting, automatically adds a "total" column and gives you control over whether variables are in the rows or columns:
+
+```{r}
+
+anes |>
+  tbl_cross(
+    col = "prefer_stronglead",
+    row = "authoritarianism3cat", 
+    percent = 'row', # rows will sum to 100%
+    missing ='no',   # don't print missing responses
+    label = list(prefer_stronglead ~ "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done",
+                 authoritarianism3cat ~ "Authoritarianism"
+                 )
+    )|>
+    modify_source_note("**Source: ANES 2024**")
+
+
+
+```
+
+#### gtsummary mean comparison
+
+Instead of creating a cross tab with proportions, we can treat one of these variables as continuous and show the average within each category by setting the `type` and `statistic` arguments in `tbl_summary`
+
+Here's an example "authoritarianism" as the continuous variable:
+
+```{r}
+anes |>
+  tbl_summary(
+    include = "authoritarianism",
+    by = "prefer_stronglead",
+    type = list(authoritarianism ~ "continuous"),
+    statistic = list(authoritarianism ~ "{mean} ({sd})")
+  ) |>
+  modify_source_note("**Source: ANES 2024**") |>
+  modify_spanning_header(
+    all_stat_cols() ~ "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done"
+  )
+
+
+```
+
+Here's an example of treating `prefer_stronglead` as continuous. For readability, `prefer_stronglead` has been reverse coded so that higher values indicate stronger agreement.
+
+```{r}
+anes |>
+  mutate(prefer_stronglead = (as.numeric(prefer_stronglead) * -1) + 5)|>
+  tbl_summary(
+    include = "prefer_stronglead",
+    by = "authoritarianism",
+    type = list(prefer_stronglead ~ "continuous"),
+    statistic = list(prefer_stronglead ~ "{mean} ({sd})"),
+    label = list(prefer_stronglead ~ "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done")
+              )|>
+  modify_source_note("**Source: ANES 2024**") |>
+  modify_spanning_header(
+    all_stat_cols() ~ "Number of authoritarian preferences"
+  )
+
+
+```
+
+#### gt mean comparison
+
+These tables can also be created using `gt`. The main difference here is that we need to do the summarization ourselves using `group_by` and `summarize` before we make the table:
+
+```{r}
+
+anes|>
+  group_by(prefer_stronglead)|>
+  summarize(authoritarianism = mean(authoritarianism, na.rm=T),
+            n = n()
+            )|>
+  gt()|>
+  cols_align(align='left')|>
+  cols_label(
+    prefer_stronglead = "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done",
+    authoritarianism = "Authoritarianism index",
+    n = "N"
+             )|>
+  fmt_number(columns = "authoritarianism")|>
+  sub_missing(missing_text = "DK/REF")|>
+  tab_header(
+    title = md("Authoritarianism and support for strong leaders"),
+    subtitle = md("Source: ANES 2024")
+  )
+
+
+
+```
+
+#### gt crosstab
+
+```{r}
+
+anes$authoritarianism3cat<-factor(anes$authoritarianism, 
+                                     levels=c(0, 1, 2,3,4),
+                                     labels=c("Low", "Low", "Moderate", "High", "High")
+                                     )
+
+# making the summary table
+summary_tab<-anes|>
+  group_by(authoritarianism3cat, prefer_stronglead)|>
+  summarize(n = n())|>
+  group_by(authoritarianism3cat)|>
+  mutate(label = sprintf("%.0f%% (%i)",
+                         (n/sum(n)) *100,
+                         n)
+         )|>
+  drop_na()|>
+  select(-n)|>
+  ungroup()|>
+  pivot_wider(names_from = prefer_stronglead, values_from=label)
+
+
+summary_tab|>
+  gt()|>
+  cols_align(align='left')|>
+  cols_label(
+    authoritarianism3cat = "Authoritarianism index"
+             )|>
+  sub_missing(missing_text = "DK/REF")|>
+  tab_header(
+    title = md("Authoritarianism and support for strong leaders"),
+    subtitle = md("Source: ANES 2024")
+  )
+
+
+
+```
+:::
+::::
+
+## Question 4
+
+We might be concerned that the observed relationship between authoritarianism and support for strong leaders is confounded by some other characteristic, such as gender. If men are more likely to have authoritarian personalities, and they're more likely to prefer a strong leader, then the relationship you saw in question 3 might be explained entirely by differences between men and women.
+
+One way to test the plausibility of this argument is to calculate the effect of authoritarianism separately for men and women. Use `V241550` to re-create the table from question 3 separately for men and women. Briefly discuss your results.
+
+:::: {.callout-note appearance="minimal"}
+### Answer
+
+The easiest thing to do here is to use `filter` to create separate tables for men and women. The code to do that should be straightforward, so it isn't shown here. Instead, the tabs below give examples of how you might create a single combined table to show this relationship.
+
+It should be clear from your output that the same basic relationship is present for both men and women: more authoritarianism is associated with stronger agreement for the statement that about strong leaders, regardless of gender, so there's not a confounding issue.
+
+Start by making a factor from `V241550`:
+
+```{r}
+anes$gender<-factor(anes$V241550, levels=c(1,2), labels=c("Male", "Female"))
+
+
+
+```
+
+You can click the panels below to see some options for displaying this relationship. There are multiple possible right answers here, but you should have formatted output that can be easily interpreted.
+
+::: panel-tabset
+#### gtsummary stacked table
+
+```{r}
+anes$authoritarianism3cat<-factor(anes$authoritarianism, 
+                                     levels=c(0, 1, 2,3,4),
+                                     labels=c("Low", "Low", "Moderate", "High", "High")
+                                     )
+
+tab_f<-anes |>
+  filter(gender == "Female")|>
+  tbl_cross(
+    col = "prefer_stronglead",
+    row = "authoritarianism3cat", 
+    margin = NULL,       # no totals column
+    percent = 'row', # row  will sum to 100%
+    missing ='no',   # don't print missing responses
+    label = list(prefer_stronglead ~ "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done",
+                 authoritarianism3cat ~ "Authoritarianism"
+                 )
+    )
+
+tab_m<-anes |>
+  filter(gender == "Male")|>
+  tbl_cross(
+    col = "prefer_stronglead",
+    row = "authoritarianism3cat", 
+    margin = NULL,      # no total column
+    percent = 'row', # rows will sum to 100%
+    missing ='no',   # don't print missing responses
+    label = list(prefer_stronglead ~ "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done",
+                 authoritarianism3cat ~ "Authoritarianism"
+                 )
+    )
+
+
+tbl_stack(
+  tbls = list(tab_f, tab_m),
+  group_header = c("Women", "Men")
+)|>
+ modify_source_note("**Source: ANES 2024**")
+
+
+
+
+```
+
+#### gtsummary stratified table
+
+The `tbl_strata` function will create a nested table in one step. The code here looks a little convoluted, the key is that the code used to create an individual table is now sent to the `tbl_fun` argument of the `tbl_strata` function:
+
+```{r}
+anes |>
+  select(gender, prefer_stronglead, authoritarianism) |>
+  drop_na(gender) |>
+  tbl_strata(
+    strata = gender,
+    .tbl_fun =
+      ~ .x |>
+      tbl_summary(by = prefer_stronglead) |> # summary table function
+      add_n(),
+    .combine_with = "tbl_stack",
+    .header = "{strata}, N = {n}"
+  ) |>
+  modify_source_note("**Source: ANES 2024**") |>
+  modify_spanning_header(
+    all_stat_cols() ~ "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done"
+  )
+
+
+```
+
+#### gt stacked table
+
+We can create a nested table in gt using `group_by` and `summarize`:
+
+```{r}
+
+anes|>
+  group_by(gender, prefer_stronglead)|>
+  summarize(authoritarianism = mean(authoritarianism, na.rm=T),
+            n = n(),
+            
+            )|>
+  drop_na(gender)|>
+  gt()|>
+  cols_align(align='left')|>
+  cols_label(
+    prefer_stronglead = "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done",
+    authoritarianism = "Authoritarianism index",
+    n = "N"
+             )|>
+  fmt_number(columns = "authoritarianism")|>
+  sub_missing(missing_text = "DK/REF")|>
+  tab_header(
+    title = md("Authoritarianism and support for strong leaders"),
+    subtitle = md("Source: ANES 2024")
+  )
+  
+
+ 
+```
+
+#### gt wide format
+
+If we do some additional formatting and reshaping with [`pivot_wider`](https://tidyr.tidyverse.org/reference/pivot_wider.html), we can create a mean comparison table in `gt` and display it in wide format:
+
+```{r}
+
+anes|>
+  group_by(gender, prefer_stronglead)|>
+  summarize(authoritarianism = sprintf("%.2f (%i)",
+                                       mean(authoritarianism, na.rm=T),
+                                       n()
+                                       )
+            
+            )|>
+  drop_na(gender)|>
+  pivot_wider(names_from = gender, values_from=authoritarianism)|>
+  gt()|>
+  cols_align(align='left')|>
+
+  tab_spanner(
+    label = "Authoritarianism index",
+    columns = c(Male, Female)
+  )|>
+  cols_label(
+    prefer_stronglead = "V242411: A strong leader in government is good for the United States even if the leader bends the rules to get things done"
+             )|>
+  sub_missing(missing_text = "DK/REF")|>
+  tab_header(
+    title = md("Authoritarianism and support for strong leaders"),
+    subtitle = md("Source: ANES 2024")
+  )
+  
+
+
+```
+:::
+::::
+
+## Extra code: plotting likert items
+
+For complex comparisons like this, a plot might ultimately prove more readable than a crosstab. Stacked bar charts are a useful way to display likert type responses like this. Here's an example that uses [ggplot2](https://ggplot2.tidyverse.org/), which you should already have as part of the tidyverse.
+
+```{r}
+#| fig-width: 10
+
+anes$authoritarianism3cat<-factor(anes$authoritarianism, 
+                                     levels=c(0, 1, 2,3,4),
+                                     labels=c("Low", "Low", "Moderate", "High", "High")
+                                     )
+
+summary_data <- anes |>
+  group_by(gender, prefer_stronglead, authoritarianism3cat) |>
+  summarize(n = n()) |>
+  drop_na()|>
+  group_by(authoritarianism3cat, gender)|>
+  mutate(total = sum(n),
+         proportion = n/total,
+         label = sprintf("%.0f%%",
+                         proportion*100,
+                         n)
+         )
+
+
+ggplot(summary_data, aes(y=proportion, 
+                         x=authoritarianism3cat, 
+                         fill=prefer_stronglead, label=label)) +
+  geom_bar(stat='identity', position='stack') +
+  facet_grid(rows=~gender) +
+  scale_fill_discrete(palette = "RdYlBu") +
+  geom_text(position = position_stack(vjust = 0.5))+
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal() +
+  labs(x = "Authoritarianism index",
+       y= "%",
+       fill = 'Preference for strong leader',
+       title = 'V242411: A strong leader in government is good for the United States\neven if the leader bends the rules to get things done',
+       subtitle = '(by authoritarianism)',
+       caption = 'Source: ANES 2024'
+       ) 
+
+
+```
+
+Alternatively, there are several packages that offer some useful functions for handling likert type data. The `ggstats` package will perform these calculations automatically and add some additional formatting and positioning. You'll need to install the package before this will work.
+
+```{r}
+#| fig-width: 10
+#install.packages("ggstats")
+library(ggstats)
+
+anes$authoritarianism_factor<-factor(anes$authoritarianism, 
+                                     levels=c(0, 1, 2,3,4),
+                                     labels=c("Lowest", "Low", "Moderate", "High", "Highest")
+                                     )
+anes|>
+  drop_na(prefer_stronglead, gender, authoritarianism_factor)|>
+  gglikert(
+         include = c(prefer_stronglead),
+         facet_rows = vars(authoritarianism_factor),
+         # separate results by gender
+         facet_cols =vars(gender),
+         # removing the label so this can be printed in the title
+         variable_labels = c(prefer_stronglead = "") 
+         ) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+    labs(
+       fill = 'Preference for strong leader',
+       title = 'V242411: A strong leader in government is good for the United States\neven if the leader bends the rules to get things done',
+       subtitle = '(by authoritarianism)',
+       caption = 'Source: ANES 2024'
+       ) 
+
+
+```

@@ -1,0 +1,254 @@
+---
+title: "Homework 3: Survey Data"
+format:
+  html:
+    toc: true
+    df-print: kable
+    code-tools: true
+    embed-resources: true
+    theme: 
+     - united
+    self-contained: true
+editor: visual
+---
+
+```{=html}
+<style>
+.qbox {
+  background-color: #cccccc; 
+  padding: 20px; 
+  border: 1px solid #999999; 
+  border-left: 10px solid teal; 
+  border-radius: 10px;
+  margin: 10px;
+}
+
+</style>
+```
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+```
+
+
+
+
+You'll use data from the [2024 round of the General Social Survey](https://gss.norc.org/get-the-data.html) to answer these questions. The survey data has been filtered and recoded for simplicity. 
+
+
+Run the code below to import the data, then use `gss` to answer the questions below. Note that, for questions 1 and 2, you'll use the unweighted data. For questions 3-5, you should use `as_survey_design` to create a survey data set and then use commands from `srvyr` to answer the questions.
+
+```{r}
+library(tidyverse)
+library(gt)
+library(gtsummary)
+library(srvyr)
+library(survey)
+
+gss<-readRDS(url("https://github.com/Neilblund/SDSB340-Spring-2026/raw/refs/heads/master/Data/iss.rds"))
+
+```
+
+
+## Question 1
+
+Calculate the median of `wtssnrps` (the weighting variable) by `age5cat`.
+
+Which group appears to have the highest weights? What does this tell you about how this sample compares to the population?
+
+::: {.callout-note appearance="minimal"}
+
+### Answer
+
+The 18-29 age group appears to have the highest median weight. This suggests that younger people were underrepresented among people who responded to this survey relative to their prevalence in the population. (`wtssnrps` includes additional weighting for non-response adjustement, so the higher weights for this group are probably partly a function of the fact that younger people are less likely to respond!)
+
+```{r}
+# Code here
+gss|>
+  group_by(age5cat)|>
+  summarise(avg_weight = median(wtssnrps))
+
+
+```
+
+
+:::
+
+
+## Question 2
+
+The variable `frequse` is coded as "Yes" if a respondent uses the internet almost every day, and "No" otherwise. Calculate the proportion of respondents who use the internet almost every day by `sex`. Which group was most likely to say they had been used the internet nearly every day?
+
+
+::: {.callout-note appearance="minimal"}
+### Answer
+
+Women were about 4 percentage points more likely to say they used the internet 
+
+
+```{r}
+intuse<-gss|>
+  count(frequse, sex)|>
+  group_by(sex)|>
+  mutate(prop = n / sum(n))
+
+intuse
+```  
+
+
+(The question doesn't ask you to present a formatted table, but code to do that is shown below just for reference)
+
+```{r}
+# formatting with gt
+intuse|>
+  gt()|>
+  fmt_percent(prop, decimals=1)|>
+  cols_label(prop = "%",
+             n = "N"
+             )
+
+```
+
+:::
+
+# Survey Analysis Section
+
+::: {.callout-important}
+
+For questions 3 and 4, you'll want to use the survey weights using `as_survey_design`.
+
+You should use `wtssnrps` as your weighting variable, the `vpsu` variable for the primary sampling units and `vstrat` for the strata IDs.
+
+:::
+
+## Question 3
+
+Recreate the table you made for question 2 **using the weighted survey data**. What differences, if any, do you see after applying the weights?
+
+::: {.callout-note appearance="minimal"}
+### Answer
+
+The most obvious difference here is that the % who use the internet almost all the time increased for both men and women. The relative difference by gender also shrinks a bit, but women are still more likely than men to report that they use the internet almost all the time.
+
+```{r}
+# making the survey design object
+gss_survey <- gss |>
+  as_survey_design(strata = vstrat, 
+                   ids = vpsu, 
+                   weights = wtssnrps, 
+                   nest=TRUE )
+
+# calculating the proportions
+intuse_survey<-gss_survey|>
+  group_by(sex, frequse)|>
+  summarize(prop = survey_prop())
+intuse_survey
+
+# formatting with gt
+intuse_survey|>
+  select(-prop_se)|>
+  gt()|>
+  fmt_percent(prop, decimals=1)|>
+  cols_label(prop = "%")
+
+
+```
+
+
+:::
+
+## Question 4
+
+The variable `trppl` asks respondents to say how much they trust other people on a 0 to 10 scale, with zero meaning "low trust" and 10 meaning "high trust". Do daily internet users report higher or lower levels of overall trust in the weighted survey data? Present your results in a formatted table.
+
+::: {.callout-note appearance="minimal"}
+### Answer
+
+Average trust is lower among high frequency internet users.
+
+```{r}
+# Code here
+gss_survey|>
+  group_by(frequse)|>
+  summarise(avg_trust = survey_mean(trppl))|>
+  select(-`avg_trust_se`)|>
+  gt()|>
+  fmt_number(decimals =2)|>
+  cols_label(avg_trust = "Average trust")|>
+  tab_header('Average trust by frequency of internet use')
+
+```
+
+
+
+Note that you could also use `tbl_svysummary` here, but the default behavior will report the *median* by group instead of the average. This can give the impression that there's no real difference between the two groups. You can override this behavior with the `statistic` argument:
+
+```{r}
+
+gss_survey|>
+  tbl_svysummary(include = trppl, 
+                 by=frequse,
+                 statistic = all_continuous() ~ "{mean} ({sd})" # reporting means instead of medians
+                 )|>
+  modify_spanning_header(all_stat_cols() ~ "R uses internet almost all the time?")
+
+```
+
+:::
+
+## Question 5
+
+Use `svyttest` to conduct a weighted difference of means test on the level of trust among daily internet users compared to people who don't use the internet every day. What is the probability of seeing a difference at least as large as the one in our sample if there is no difference between these groups in the population?
+
+
+::: {.callout-note appearance="minimal"}
+### Answer
+
+The probability of seeing an absolute difference at least this large if the null hypothesis is true is about 3% (p=0.032). Unlikely, but not impossible!
+
+
+```{r}
+# code here
+svyttest(trppl ~ frequse, design = gss_survey)
+
+```
+
+
+Not required, but here are two options for formatting these results:
+
+We can't use `gt()` directly to format the output from `svyttest`, but we can use the `tidy` function from the [broom](https://cran.r-project.org/web/packages/broom/vignettes/broom.html) package to extract the key stats and put them in a format that can be passed to `gt()`:
+
+```{r}
+#install.packages("broom") if you don't have it already:
+svyttest(trppl ~ frequse, design = gss_survey)|>
+  broom::tidy()|>
+  gt()|>
+  fmt_number()|>
+  tab_header(title = "Trust In Others, 10 Point Scale",
+             subtitle ="(By whether R uses internet almost all the time)"
+             )
+
+```
+
+
+
+We can get a formatted version of this table using `gtsummary` as well by adding the `add_p` argument after creating the table (see: documentation for [tests](https://www.danieldsjoberg.com/gtsummary/reference/tests.html))
+
+```{r}
+gss_survey |>
+  tbl_svysummary(
+    include = trppl,
+    by = frequse,
+    statistic = all_continuous() ~ "{mean} ({sd})" # reporting means instead of medians
+  ) |>
+  add_p(trppl ~ 'svy.t.test')|>
+  modify_spanning_header(all_stat_cols() ~ "R uses internet almost all the time?")
+
+
+
+
+```
+
+:::
